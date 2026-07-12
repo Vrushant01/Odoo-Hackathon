@@ -104,7 +104,7 @@ export const DriverForm = ({ defaultValues, onSubmit, onCancel, isEdit = false }
   ];
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <form onSubmit={handleSubmit(handleFormSubmit)} style={{ display: "flex", flexDirection: "column", height: "100%", maxHeight: "calc(90vh - 160px)", overflow: "hidden" }}>
       {submitError && (
         <div style={{
           display: "flex",
@@ -116,111 +116,113 @@ export const DriverForm = ({ defaultValues, onSubmit, onCancel, isEdit = false }
           borderRadius: "var(--radius-sm)",
           fontSize: "0.875rem",
           fontWeight: 600,
-          border: "1px solid hsla(var(--danger-h), var(--danger-s), var(--danger-l), 0.2)"
+          border: "1px solid hsla(var(--danger-h), var(--danger-s), var(--danger-l), 0.2)",
+          marginBottom: "0.5rem"
         }}>
           <AlertCircle size={16} />
           <span>{submitError}</span>
         </div>
       )}
 
-      {/* Profile Photo Uploader Row */}
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.5rem" }}>
+      {/* Scrollable Form Body */}
+      <div style={{ flex: 1, overflowY: "auto", paddingRight: "0.5rem", paddingBottom: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+        {/* Profile Photo Uploader Row */}
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.5rem" }}>
+          <div style={{
+            width: "70px",
+            height: "70px",
+            borderRadius: "50%",
+            overflow: "hidden",
+            border: "2px solid var(--primary)",
+            background: "var(--bg-tertiary)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative"
+          }}>
+            {avatarPreview ? (
+              <img src={avatarPreview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            ) : (
+              <Camera size={24} style={{ color: "var(--text-muted)" }} />
+            )}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+            <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>Profile Avatar</span>
+            <input
+              type="file"
+              id="avatar-upload"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleAvatarChange}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => document.getElementById("avatar-upload").click()}
+            >
+              Upload Photo
+            </Button>
+          </div>
+        </div>
+
         <div style={{
-          width: "70px",
-          height: "70px",
-          borderRadius: "50%",
-          overflow: "hidden",
-          border: "2px solid var(--primary)",
-          background: "var(--bg-tertiary)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "relative"
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "1rem",
+          paddingRight: "0.25rem",
+          paddingBottom: "0.5rem"
         }}>
-          {avatarPreview ? (
-            <img src={avatarPreview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          ) : (
-            <Camera size={24} style={{ color: "var(--text-muted)" }} />
-          )}
+          <Input label="Full Name" placeholder="e.g. John Doe" error={errors.name?.message} disabled={loading} autoFocus {...register("name")} />
+          
+          <Input label="Email Address" placeholder="e.g. john.doe@transitops.com" error={errors.email?.message} disabled={loading} {...register("email")} />
+
+          <Input label="Phone Number" placeholder="e.g. +1 (555) 123-4567" error={errors.phone?.message} disabled={loading} {...register("phone")} />
+
+          <Input label="Emergency Contact Details" placeholder="e.g. Spouse (+1 555-987-6543)" error={errors.emergencyContact?.message} disabled={loading} {...register("emergencyContact")} />
+
+          <Input label="License Number" placeholder="e.g. DL-CA63524" error={errors.licenseNumber?.message} disabled={loading} {...register("licenseNumber")} />
+
+          <Select label="License Category" error={errors.licenseCategory?.message} options={categories} disabled={loading} {...register("licenseCategory")} />
+
+          <DatePicker label="License Expiration Date" error={errors.licenseExpiry?.message} disabled={loading} {...register("licenseExpiry")} />
+
+          <DatePicker label="Date of Birth" error={errors.dob?.message} disabled={loading} {...register("dob")} />
+
+          <Input label="Street Address" placeholder="e.g. 123 Maple Street" error={errors.address?.message} disabled={loading} {...register("address")} />
+
+          <Input label="City" placeholder="e.g. Los Angeles" error={errors.city?.message} disabled={loading} {...register("city")} />
+
+          <Input label="State" placeholder="e.g. CA" error={errors.state?.message} disabled={loading} {...register("state")} />
+
+          <Input label="Country" placeholder="e.g. USA" error={errors.country?.message} disabled={loading} {...register("country")} />
+
+          <DatePicker label="Joining Date" error={errors.joiningDate?.message} disabled={loading} {...register("joiningDate")} />
+
+          <Input label="Experience (Years)" type="number" placeholder="e.g. 5" error={errors.experience?.message} disabled={loading} {...register("experience")} />
+
+          <Select label="Blood Group" error={errors.bloodGroup?.message} options={bloodGroups} disabled={loading} {...register("bloodGroup")} />
+
+          <Select label="Driver Status" error={errors.status?.message} options={statuses} disabled={loading} {...register("status")} />
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-          <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>Profile Avatar</span>
-          <input
-            type="file"
-            id="avatar-upload"
-            accept="image/*"
-            style={{ display: "none" }}
-            onChange={handleAvatarChange}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => document.getElementById("avatar-upload").click()}
-          >
-            Upload Photo
-          </Button>
-        </div>
+
+        <Textarea
+          label="Medical or Operational Notes"
+          placeholder="Add details on safety records, medical constraints, route preferences, etc..."
+          error={errors.notes?.message}
+          disabled={loading}
+          {...register("notes")}
+        />
       </div>
 
-      {/* Grid Inputs */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-        gap: "1rem",
-        maxHeight: "55vh",
-        overflowY: "auto",
-        paddingRight: "0.25rem",
-        paddingBottom: "0.5rem"
-      }}>
-        <Input label="Full Name" placeholder="e.g. John Doe" error={errors.name?.message} disabled={loading} {...register("name")} />
-        
-        <Input label="Email Address" placeholder="e.g. john.doe@transitops.com" error={errors.email?.message} disabled={loading} {...register("email")} />
-
-        <Input label="Phone Number" placeholder="e.g. +1 (555) 123-4567" error={errors.phone?.message} disabled={loading} {...register("phone")} />
-
-        <Input label="Emergency Contact Details" placeholder="e.g. Spouse (+1 555-987-6543)" error={errors.emergencyContact?.message} disabled={loading} {...register("emergencyContact")} />
-
-        <Input label="License Number" placeholder="e.g. DL-CA63524" error={errors.licenseNumber?.message} disabled={loading} {...register("licenseNumber")} />
-
-        <Select label="License Category" error={errors.licenseCategory?.message} options={categories} disabled={loading} {...register("licenseCategory")} />
-
-        <DatePicker label="License Expiration Date" error={errors.licenseExpiry?.message} disabled={loading} {...register("licenseExpiry")} />
-
-        <DatePicker label="Date of Birth" error={errors.dob?.message} disabled={loading} {...register("dob")} />
-
-        <Input label="Street Address" placeholder="e.g. 123 Maple Street" error={errors.address?.message} disabled={loading} {...register("address")} />
-
-        <Input label="City" placeholder="e.g. Los Angeles" error={errors.city?.message} disabled={loading} {...register("city")} />
-
-        <Input label="State" placeholder="e.g. CA" error={errors.state?.message} disabled={loading} {...register("state")} />
-
-        <Input label="Country" placeholder="e.g. USA" error={errors.country?.message} disabled={loading} {...register("country")} />
-
-        <DatePicker label="Joining Date" error={errors.joiningDate?.message} disabled={loading} {...register("joiningDate")} />
-
-        <Input label="Experience (Years)" type="number" placeholder="e.g. 5" error={errors.experience?.message} disabled={loading} {...register("experience")} />
-
-        <Select label="Blood Group" error={errors.bloodGroup?.message} options={bloodGroups} disabled={loading} {...register("bloodGroup")} />
-
-        <Select label="Driver Status" error={errors.status?.message} options={statuses} disabled={loading} {...register("status")} />
-      </div>
-
-      <Textarea
-        label="Medical or Operational Notes"
-        placeholder="Add details on safety records, medical constraints, route preferences, etc..."
-        error={errors.notes?.message}
-        disabled={loading}
-        {...register("notes")}
-      />
-
+      {/* Action Buttons (Sticky Footer) */}
       <div style={{
         display: "flex",
         justifyContent: "flex-end",
         gap: "0.75rem",
         borderTop: "1px solid var(--border-color)",
         paddingTop: "1rem",
-        marginTop: "0.5rem"
+        marginTop: "auto"
       }}>
         <Button variant="secondary" onClick={onCancel} disabled={loading}>
           Cancel

@@ -1,31 +1,31 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import tripService from "../services/tripService";
+import { useGlobalFilters } from "../contexts/FilterContext";
 
 export const useTrips = () => {
   const [trips, setTrips] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const [pageCount, setPageCount] = useState(0);
+  const [summaryCounts, setSummaryCounts] = useState({ total: 0, active: 0, dispatched: 0, completed: 0, cancelled: 0, totalDistance: 0, totalCargo: 0 });
+
+  // Global filters from context
+  const { globalFilters } = useGlobalFilters();
 
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
     status: "",
-    vehicle: "",
-    driver: "",
+    priority: "",
     vehicleType: "",
-    region: "",
-    startDate: "",
-    endDate: "",
-    minCargoWeight: "",
-    maxCargoWeight: "",
-    minDistance: "",
-    maxDistance: ""
+    dateRange: { start: "", end: "" }
   });
 
   // Sorting State
   const [sorting, setSorting] = useState({
-    field: "id",
+    field: "tripNumber",
     order: "asc"
   });
 
@@ -38,22 +38,84 @@ export const useTrips = () => {
   // Row Selection (Bulk Actions)
   const [selectedIds, setSelectedIds] = useState([]);
 
-  // Fetch trips list
+  // Fetch trip statistics
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'}/trips/statistics`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("transitops_token") || sessionStorage.getItem("transitops_token")}`
+        }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSummaryCounts({
+          total: data.data.totalTrips || 0,
+          active: data.data.draftTrips || 0,
+          dispatched: data.data.dispatchedTrips || 0,
+          completed: data.data.completedTrips || 0,
+          cancelled: data.data.cancelledTrips || 0,
+          totalDistance: data.data.totalDistance || 0,
+          totalCargo: data.data.totalCargo || 0
+        });
+      }
+    } catch (e) {
+      console.error("Failed to load trip statistics:", e);
+    }
+  }, []);
+
+  // Fetch Trips
   const fetchTrips = useCallback(async (isSilent = false) => {
     if (!isSilent) setIsLoading(true);
     setError(null);
 
     try {
-      const data = await tripService.getTrips();
-      setTrips(data);
+      const res = await tripService.getTrips({
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        search: searchTerm || globalFilters.driver,
+        sort: sorting.field,
+        sortOrder: sorting.order,
+        // Page-level status takes priority; fall back to global trip status
+        status: filters.status || globalFilters.tripStatus,
+        priority: filters.priority,
+        vehicleType: globalFilters.vehicleType,
+        startDate: globalFilters.startDate,
+        endDate: globalFilters.endDate
+      });
+
+      if (res && res.trips) {
+        setTrips(res.trips);
+        setPageCount(res.pagination.totalPages);
+        setTotalCount(res.pagination.totalResults);
+      } else {
+        setTrips(res);
+        setPageCount(1);
+        setTotalCount(res.length);
+      }
+      fetchStats();
     } catch (err) {
       console.error(err);
-      setError("Failed to fetch trips.");
-      toast.error("Failed to load dispatches.");
+      setError("Failed to fetch trips list.");
+      toast.error("Failed to load dispatch registry.");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [
+    pagination.pageIndex,
+    pagination.pageSize,
+    searchTerm,
+    sorting.field,
+    sorting.order,
+    filters.status,
+    filters.priority,
+    // Global filter dependencies
+    globalFilters.driver,
+    globalFilters.tripStatus,
+    globalFilters.vehicleType,
+    globalFilters.startDate,
+    globalFilters.endDate,
+    fetchStats
+  ]);
 
   useEffect(() => {
     fetchTrips();
@@ -62,10 +124,10 @@ export const useTrips = () => {
   const refresh = useCallback(() => {
     fetchTrips(true);
     setSelectedIds([]);
-    toast.success("Dispatches ledger refreshed.");
+    toast.success("Dispatch registry refreshed.");
   }, [fetchTrips]);
 
-  // Filter Updates
+  // Filters Handler
   const updateFilter = useCallback((key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
@@ -74,16 +136,9 @@ export const useTrips = () => {
   const resetFilters = useCallback(() => {
     setFilters({
       status: "",
-      vehicle: "",
-      driver: "",
+      priority: "",
       vehicleType: "",
-      region: "",
-      startDate: "",
-      endDate: "",
-      minCargoWeight: "",
-      maxCargoWeight: "",
-      minDistance: "",
-      maxDistance: ""
+      dateRange: { start: "", end: "" }
     });
     setSearchTerm("");
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
@@ -91,11 +146,11 @@ export const useTrips = () => {
     toast.success("Filters reset successfully.");
   }, []);
 
-  // CRUD & Lifecycle
+  // CRUD Operations
   const addTrip = async (data) => {
     try {
       const newTrip = await tripService.createTrip(data);
-      toast.success(`Trip ${newTrip.id} scheduled in draft.`);
+      toast.success(`Trip ${newTrip.tripNumber} created successfully.`);
       fetchTrips(true);
       return newTrip;
     } catch (err) {
@@ -107,11 +162,11 @@ export const useTrips = () => {
   const editTrip = async (id, data) => {
     try {
       const updated = await tripService.updateTrip(id, data);
-      toast.success(`Trip ${updated.id} details updated.`);
+      toast.success(`Trip ${updated.tripNumber} updated successfully.`);
       fetchTrips(true);
       return updated;
     } catch (err) {
-      toast.error(err.message || "Failed to update trip.");
+      toast.error(err.message || "Failed to update trip details.");
       throw err;
     }
   };
@@ -119,7 +174,7 @@ export const useTrips = () => {
   const deleteTrip = async (id) => {
     try {
       await tripService.deleteTrip(id);
-      toast.success("Trip soft-deleted successfully.");
+      toast.success("Trip deleted successfully.");
       fetchTrips(true);
       setSelectedIds((prev) => prev.filter((item) => item !== id));
     } catch (err) {
@@ -130,56 +185,30 @@ export const useTrips = () => {
   const dispatchTrip = async (id, details) => {
     try {
       const dispatched = await tripService.dispatchTrip(id, details);
-      toast.success(`Trip ${dispatched.id} has been dispatched!`);
+      toast.success(`Trip ${dispatched.tripNumber} is now dispatched.`);
       fetchTrips(true);
-      return dispatched;
     } catch (err) {
       toast.error(err.message || "Failed to dispatch trip.");
-      throw err;
     }
   };
 
   const completeTrip = async (id, details) => {
     try {
       const completed = await tripService.completeTrip(id, details);
-      toast.success(`Trip ${completed.id} marked as completed.`);
+      toast.success(`Trip ${completed.tripNumber} has been completed.`);
       fetchTrips(true);
-      return completed;
     } catch (err) {
       toast.error(err.message || "Failed to complete trip.");
-      throw err;
     }
   };
 
   const cancelTrip = async (id, details) => {
     try {
       const cancelled = await tripService.cancelTrip(id, details);
-      toast.success(`Trip ${cancelled.id} marked as cancelled.`);
+      toast.success(`Trip ${cancelled.tripNumber} has been cancelled.`);
       fetchTrips(true);
-      return cancelled;
     } catch (err) {
       toast.error(err.message || "Failed to cancel trip.");
-      throw err;
-    }
-  };
-
-  const duplicateTrip = async (id) => {
-    try {
-      const target = trips.find((t) => t.id === id);
-      if (!target) throw new Error("Trip not found");
-
-      const duplicateData = {
-        ...target,
-        status: "Draft",
-        dispatchDate: null,
-        expectedCompletion: null,
-        notes: `Duplicate of ${target.id}.`
-      };
-      delete duplicateData.id;
-
-      await addTrip(duplicateData);
-    } catch (err) {
-      toast.error("Failed to duplicate trip.");
     }
   };
 
@@ -188,7 +217,7 @@ export const useTrips = () => {
     if (selectedIds.length === 0) return;
     try {
       await Promise.all(selectedIds.map((id) => tripService.deleteTrip(id)));
-      toast.success(`Deleted ${selectedIds.length} trip dispatches.`);
+      toast.success(`Deleted ${selectedIds.length} dispatches.`);
       setSelectedIds([]);
       fetchTrips(true);
     } catch (err) {
@@ -201,10 +230,10 @@ export const useTrips = () => {
       toast.warning("Please select at least one trip to export.");
       return;
     }
-    toast.info(`Exporting ${selectedIds.length} dispatches to ${format.toUpperCase()} (Mock).`);
+    toast.info(`Exporting ${selectedIds.length} records to ${format.toUpperCase()} (Mock).`);
   };
 
-  // Selection helpers
+  // Row Selection Helpers
   const toggleSelectRow = (id) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
@@ -222,130 +251,12 @@ export const useTrips = () => {
     }
   };
 
-  // KPI summary counters derived from active list
-  const summaryCounts = useMemo(() => {
-    const counts = {
-      total: 0,
-      draft: 0,
-      dispatched: 0,
-      completed: 0,
-      cancelled: 0,
-      active: 0,
-      pending: 0,
-      totalDistance: 0,
-      totalCargo: 0
-    };
-
-    trips.forEach((t) => {
-      if (t.deleted) return;
-      counts.total++;
-      if (t.status === "Draft") {
-        counts.draft++;
-        counts.pending++;
-        counts.active++;
-      } else if (t.status === "Dispatched") {
-        counts.dispatched++;
-        counts.active++;
-      } else if (t.status === "Completed") {
-        counts.completed++;
-      } else if (t.status === "Cancelled") {
-        counts.cancelled++;
-      }
-
-      counts.totalDistance += t.plannedDistance || 0;
-      counts.totalCargo += t.cargoWeight || 0;
-    });
-
-    return counts;
-  }, [trips]);
-
-  // Client-Side Search, Filter & Sort logic
-  const filteredAndSortedTrips = useMemo(() => {
-    let result = [...trips];
-
-    // 1. Search filter
-    if (searchTerm) {
-      const termLower = searchTerm.toLowerCase();
-      result = result.filter(
-        (t) =>
-          t.id.toLowerCase().includes(termLower) ||
-          t.driver.toLowerCase().includes(termLower) ||
-          t.vehicle.toLowerCase().includes(termLower) ||
-          t.source.toLowerCase().includes(termLower) ||
-          t.destination.toLowerCase().includes(termLower) ||
-          t.status.toLowerCase().includes(termLower)
-      );
-    }
-
-    // 2. Advanced filters
-    if (filters.status) {
-      result = result.filter((t) => t.status === filters.status);
-    }
-    if (filters.driver) {
-      result = result.filter((t) => t.driver.toLowerCase().includes(filters.driver.toLowerCase()));
-    }
-    if (filters.vehicle) {
-      result = result.filter((t) => t.vehicle.toLowerCase().includes(filters.vehicle.toLowerCase()));
-    }
-    if (filters.vehicleType) {
-      result = result.filter((t) => t.vehicle.toLowerCase().includes(filters.vehicleType.toLowerCase()));
-    }
-    if (filters.region) {
-      result = result.filter((t) => t.vehicle.toLowerCase().includes(filters.region.toLowerCase()) || t.notes?.toLowerCase().includes(filters.region.toLowerCase()));
-    }
-    if (filters.minCargoWeight) {
-      result = result.filter((t) => t.cargoWeight >= Number(filters.minCargoWeight));
-    }
-    if (filters.maxCargoWeight) {
-      result = result.filter((t) => t.cargoWeight <= Number(filters.maxCargoWeight));
-    }
-    if (filters.minDistance) {
-      result = result.filter((t) => t.plannedDistance >= Number(filters.minDistance));
-    }
-    if (filters.maxDistance) {
-      result = result.filter((t) => t.plannedDistance <= Number(filters.maxDistance));
-    }
-    if (filters.startDate) {
-      result = result.filter((t) => t.createdDate >= filters.startDate);
-    }
-    if (filters.endDate) {
-      result = result.filter((t) => t.createdDate <= filters.endDate);
-    }
-
-    // 3. Sorting
-    if (sorting.field) {
-      const f = sorting.field;
-      const orderMultiplier = sorting.order === "asc" ? 1 : -1;
-
-      result.sort((a, b) => {
-        let valA = a[f];
-        let valB = b[f];
-
-        if (typeof valA === "string") valA = valA.toLowerCase();
-        if (typeof valB === "string") valB = valB.toLowerCase();
-
-        if (valA < valB) return -1 * orderMultiplier;
-        if (valA > valB) return 1 * orderMultiplier;
-        return 0;
-      });
-    }
-
-    return result;
-  }, [trips, searchTerm, filters, sorting]);
-
-  // Paginated Results
-  const paginatedTrips = useMemo(() => {
-    const start = pagination.pageIndex * pagination.pageSize;
-    const end = start + pagination.pageSize;
-    return filteredAndSortedTrips.slice(start, end);
-  }, [filteredAndSortedTrips, pagination]);
-
-  const pageCount = Math.ceil(filteredAndSortedTrips.length / pagination.pageSize);
+  const allVisibleIds = useMemo(() => trips.map((t) => t.id), [trips]);
 
   return {
-    trips: paginatedTrips,
-    totalCount: filteredAndSortedTrips.length,
-    allVisibleIds: paginatedTrips.map((t) => t.id),
+    trips,
+    totalCount,
+    allVisibleIds,
     isLoading,
     error,
     searchTerm,
@@ -369,7 +280,6 @@ export const useTrips = () => {
     dispatchTrip,
     completeTrip,
     cancelTrip,
-    duplicateTrip,
     bulkDelete,
     bulkExport,
     refresh

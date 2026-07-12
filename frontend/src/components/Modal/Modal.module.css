@@ -28,9 +28,9 @@
 }
 
 /* Modal sizes */
-.sm { max-width: 400px; }
-.md { max-width: 550px; }
-.lg { max-width: 800px; }
+.sm { max-width: 450px; }
+.md { max-width: 950px; }
+.lg { max-width: 1100px; }
 
 .header {
   display: flex;
@@ -66,7 +66,9 @@
 
 .content {
   padding: 1.5rem;
-  overflow-y: auto;
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
   flex: 1;
 }
 

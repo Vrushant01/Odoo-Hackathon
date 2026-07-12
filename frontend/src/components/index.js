@@ -16,3 +16,4 @@ export { default as Breadcrumb } from "./Breadcrumb/Breadcrumb";
 export { default as PageHeader } from "./PageHeader/PageHeader";
 export { default as Table } from "./Table/Table";
 export { default as Chart } from "./Chart/Chart";
+export { default as ActionMenu } from "./ActionMenu/ActionMenu";

@@ -124,7 +124,7 @@ export const FuelForm = ({ defaultValues, onSubmit, onCancel, isEdit = false }) 
   const calculatedTotal = (qty && price) ? (qty * price).toFixed(2) : "0.00";
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <form onSubmit={handleSubmit(handleFormSubmit)} style={{ display: "flex", flexDirection: "column", height: "100%", maxHeight: "calc(90vh - 160px)", overflow: "hidden" }}>
       {submitError && (
         <div style={{
           display: "flex",
@@ -136,65 +136,67 @@ export const FuelForm = ({ defaultValues, onSubmit, onCancel, isEdit = false }) 
           borderRadius: "var(--radius-sm)",
           fontSize: "0.875rem",
           fontWeight: 600,
-          border: "1px solid hsla(var(--danger-h), var(--danger-s), var(--danger-l), 0.2)"
+          border: "1px solid hsla(var(--danger-h), var(--danger-s), var(--danger-l), 0.2)",
+          marginBottom: "0.5rem"
         }}>
           <AlertCircle size={16} />
           <span>{submitError}</span>
         </div>
       )}
 
-      {/* Grid Fields */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-        gap: "1rem",
-        maxHeight: "55vh",
-        overflowY: "auto",
-        paddingRight: "0.25rem",
-        paddingBottom: "0.5rem"
-      }}>
-        <Select label="Refueling Vehicle" error={errors.vehicle?.message} options={vehicleOptions} disabled={loading} {...register("vehicle")} />
+      {/* Scrollable Form Body */}
+      <div style={{ flex: 1, overflowY: "auto", paddingRight: "0.5rem", paddingBottom: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "1rem",
+          paddingRight: "0.25rem",
+          paddingBottom: "0.5rem"
+        }}>
+          <Select label="Refueling Vehicle" error={errors.vehicle?.message} options={vehicleOptions} disabled={loading} autoFocus {...register("vehicle")} />
 
-        <Select label="Refueling Driver" error={errors.driver?.message} options={driverOptions} disabled={loading} {...register("driver")} />
+          <Select label="Refueling Driver" error={errors.driver?.message} options={driverOptions} disabled={loading} {...register("driver")} />
 
-        <Select label="Trip ID" error={errors.tripId?.message} options={tripOptions} disabled={loading} {...register("tripId")} />
+          <Select label="Trip ID" error={errors.tripId?.message} options={tripOptions} disabled={loading} {...register("tripId")} />
 
-        <Input label="Fuel Station Name" placeholder="e.g. Shell Station #4, Miami" error={errors.fuelStation?.message} disabled={loading} {...register("fuelStation")} />
+          <Input label="Fuel Station Name" placeholder="e.g. Shell Station #4, Miami" error={errors.fuelStation?.message} disabled={loading} {...register("fuelStation")} />
 
-        <Select label="Fuel Category Type" error={errors.fuelType?.message} options={fuelTypes} disabled={loading} {...register("fuelType")} />
+          <Select label="Fuel Category Type" error={errors.fuelType?.message} options={fuelTypes} disabled={loading} {...register("fuelType")} />
 
-        <Input label="Fuel Quantity (Liters)" type="number" placeholder="e.g. 65" error={errors.fuelQuantity?.message} disabled={loading} {...register("fuelQuantity")} />
+          <Input label="Fuel Quantity (Liters)" type="number" placeholder="e.g. 65" error={errors.fuelQuantity?.message} disabled={loading} {...register("fuelQuantity")} />
 
-        <Input label="Price Per Liter ($)" type="number" step="0.01" placeholder="e.g. 1.36" error={errors.pricePerUnit?.message} disabled={loading} {...register("pricePerUnit")} />
+          <Input label="Price Per Liter ($)" type="number" step="0.01" placeholder="e.g. 1.36" error={errors.pricePerUnit?.message} disabled={loading} {...register("pricePerUnit")} />
 
-        <Input label="Current Odometer Read (mi)" type="number" placeholder="e.g. 112065" error={errors.currentOdometer?.message} disabled={loading} {...register("currentOdometer")} />
+          <Input label="Current Odometer Read (mi)" type="number" placeholder="e.g. 112065" error={errors.currentOdometer?.message} disabled={loading} {...register("currentOdometer")} />
 
-        <Input label="Receipt / Invoice Number" placeholder="e.g. INV-FL-1001" error={errors.invoiceNumber?.message} disabled={loading} {...register("invoiceNumber")} />
+          <Input label="Receipt / Invoice Number" placeholder="e.g. INV-FL-1001" error={errors.invoiceNumber?.message} disabled={loading} {...register("invoiceNumber")} />
 
-        <Select label="Invoice Payment Method" error={errors.paymentMethod?.message} options={paymentMethods} disabled={loading} {...register("paymentMethod")} />
+          <Select label="Invoice Payment Method" error={errors.paymentMethod?.message} options={paymentMethods} disabled={loading} {...register("paymentMethod")} />
 
-        <DatePicker label="Refuel Date" error={errors.fuelDate?.message} disabled={loading} {...register("fuelDate")} />
+          <DatePicker label="Refuel Date" error={errors.fuelDate?.message} disabled={loading} {...register("fuelDate")} />
+        </div>
+
+        <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: 700, padding: "0.25rem 0" }}>
+          Total Calculated Amount: <strong style={{ color: "var(--success)", fontSize: "1.1rem" }}>${calculatedTotal}</strong>
+        </div>
+
+        <Textarea
+          label="Refueling Remarks"
+          placeholder="Add remarks like fuel card details, tank levels issues, or gateway receipts codes..."
+          error={errors.remarks?.message}
+          disabled={loading}
+          {...register("remarks")}
+        />
       </div>
 
-      <div style={{ fontSize: "0.95rem", color: "var(--text-secondary)", fontWeight: 700, padding: "0.25rem 0" }}>
-        Total Calculated Amount: <strong style={{ color: "var(--success)", fontSize: "1.1rem" }}>${calculatedTotal}</strong>
-      </div>
-
-      <Textarea
-        label="Refueling Remarks"
-        placeholder="Add remarks like fuel card details, tank levels issues, or gateway receipts codes..."
-        error={errors.remarks?.message}
-        disabled={loading}
-        {...register("remarks")}
-      />
-
+      {/* Action Buttons (Sticky Footer) */}
       <div style={{
         display: "flex",
         justifyContent: "flex-end",
         gap: "0.75rem",
         borderTop: "1px solid var(--border-color)",
         paddingTop: "1rem",
-        marginTop: "0.5rem"
+        marginTop: "auto"
       }}>
         <Button variant="secondary" onClick={onCancel} disabled={loading}>
           Cancel

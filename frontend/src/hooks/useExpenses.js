@@ -1,27 +1,26 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import expenseService from "../services/expenseService";
+import { useGlobalFilters } from "../contexts/FilterContext";
 
 export const useExpenses = () => {
   const [expenses, setExpenses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const [pageCount, setPageCount] = useState(0);
+  const [summaryCounts, setSummaryCounts] = useState({ totalExpenses: 0, paidCount: 0, pendingCount: 0, rejectedCount: 0 });
 
-  // Charts & Stats Aggregations
-  const [summary, setSummary] = useState(null);
-  const [charts, setCharts] = useState(null);
+  // Global filters from context
+  const { globalFilters } = useGlobalFilters();
 
   // Search & Filters State
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
-    type: "",
-    vehicle: "",
-    tripId: "",
-    vendor: "",
-    startDate: "",
-    endDate: "",
-    status: "",
-    region: ""
+    expenseType: "",
+    paymentStatus: "",
+    vehicleType: "",
+    dateRange: { start: "", end: "" }
   });
 
   // Sorting State
@@ -39,28 +38,79 @@ export const useExpenses = () => {
   // Row Selection (Bulk Actions)
   const [selectedIds, setSelectedIds] = useState([]);
 
-  // Fetch expenses list
+  // Fetch expense stats
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'}/expenses/statistics`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("transitops_token") || sessionStorage.getItem("transitops_token")}`
+        }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSummaryCounts({
+          totalExpenses: data.data.totalExpenses || 0,
+          paidCount: data.data.paidCount || 0,
+          pendingCount: data.data.pendingCount || 0,
+          rejectedCount: data.data.rejectedCount || 0
+        });
+      }
+    } catch (e) {
+      console.error("Failed to load expense statistics:", e);
+    }
+  }, []);
+
+  // Fetch Expenses list
   const fetchExpenses = useCallback(async (isSilent = false) => {
     if (!isSilent) setIsLoading(true);
     setError(null);
 
     try {
-      const [expData, sumData, chartsData] = await Promise.all([
-        expenseService.getExpenses(),
-        expenseService.getExpenseSummary(),
-        expenseService.getExpenseCharts()
-      ]);
-      setExpenses(expData);
-      setSummary(sumData);
-      setCharts(chartsData);
+      const res = await expenseService.getExpenses({
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        search: searchTerm,
+        sort: sorting.field,
+        sortOrder: sorting.order,
+        status: filters.paymentStatus,
+        type: filters.expenseType,
+        // Global filter passthrough
+        vehicleType: globalFilters.vehicleType,
+        startDate: globalFilters.startDate,
+        endDate: globalFilters.endDate
+      });
+
+      if (res && res.expenses) {
+        setExpenses(res.expenses);
+        setPageCount(res.pagination.totalPages);
+        setTotalCount(res.pagination.totalResults);
+      } else {
+        setExpenses(res);
+        setPageCount(1);
+        setTotalCount(res.length);
+      }
+      fetchStats();
     } catch (err) {
       console.error(err);
-      setError("Failed to fetch expenses.");
-      toast.error("Failed to load expenses ledger.");
+      setError("Failed to fetch expenses list.");
+      toast.error("Failed to load financial records.");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [
+    pagination.pageIndex,
+    pagination.pageSize,
+    searchTerm,
+    sorting.field,
+    sorting.order,
+    filters.paymentStatus,
+    filters.expenseType,
+    // Global filter dependencies
+    globalFilters.vehicleType,
+    globalFilters.startDate,
+    globalFilters.endDate,
+    fetchStats
+  ]);
 
   useEffect(() => {
     fetchExpenses();
@@ -69,10 +119,10 @@ export const useExpenses = () => {
   const refresh = useCallback(() => {
     fetchExpenses(true);
     setSelectedIds([]);
-    toast.success("Expenses ledger refreshed.");
+    toast.success("Expense log refreshed.");
   }, [fetchExpenses]);
 
-  // Filter Updates
+  // Filters Handler
   const updateFilter = useCallback((key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
@@ -80,14 +130,10 @@ export const useExpenses = () => {
 
   const resetFilters = useCallback(() => {
     setFilters({
-      type: "",
-      vehicle: "",
-      tripId: "",
-      vendor: "",
-      startDate: "",
-      endDate: "",
-      status: "",
-      region: ""
+      expenseType: "",
+      paymentStatus: "",
+      vehicleType: "",
+      dateRange: { start: "", end: "" }
     });
     setSearchTerm("");
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
@@ -95,15 +141,15 @@ export const useExpenses = () => {
     toast.success("Filters reset successfully.");
   }, []);
 
-  // CRUD
+  // CRUD Operations
   const addExpense = async (data) => {
     try {
       const newExp = await expenseService.createExpense(data);
-      toast.success(`Expense ${newExp.id} added.`);
+      toast.success(`Expense ${newExp.invoiceNumber} logged successfully.`);
       fetchExpenses(true);
       return newExp;
     } catch (err) {
-      toast.error("Failed to add expense record.");
+      toast.error(err.message || "Failed to log expense.");
       throw err;
     }
   };
@@ -111,11 +157,11 @@ export const useExpenses = () => {
   const editExpense = async (id, data) => {
     try {
       const updated = await expenseService.updateExpense(id, data);
-      toast.success(`Expense ${updated.id} details updated.`);
+      toast.success(`Expense ${updated.invoiceNumber} updated.`);
       fetchExpenses(true);
       return updated;
     } catch (err) {
-      toast.error("Failed to update expense details.");
+      toast.error(err.message || "Failed to update expense.");
       throw err;
     }
   };
@@ -127,7 +173,7 @@ export const useExpenses = () => {
       fetchExpenses(true);
       setSelectedIds((prev) => prev.filter((item) => item !== id));
     } catch (err) {
-      toast.error("Failed to delete expense.");
+      toast.error("Failed to delete expense record.");
     }
   };
 
@@ -146,13 +192,13 @@ export const useExpenses = () => {
 
   const bulkExport = (format = "csv") => {
     if (selectedIds.length === 0) {
-      toast.warning("Please select at least one expense to export.");
+      toast.warning("Please select at least one expense record to export.");
       return;
     }
-    toast.info(`Exporting ${selectedIds.length} expenses to ${format.toUpperCase()} (Mock).`);
+    toast.info(`Exporting ${selectedIds.length} records to ${format.toUpperCase()} (Mock).`);
   };
 
-  // Selection helpers
+  // Row Selection Helpers
   const toggleSelectRow = (id) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
@@ -170,115 +216,12 @@ export const useExpenses = () => {
     }
   };
 
-  // KPI summary counters derived from active list
-  const summaryCounts = useMemo(() => {
-    if (summary) return summary;
-
-    const counts = {
-      totalExpenses: 0,
-      fuelExpenses: 0,
-      maintenanceExpenses: 0,
-      tollExpenses: 0,
-      repairExpenses: 0,
-      miscExpenses: 0,
-      monthlyExpenses: 0,
-      avgExpensePerTrip: 0,
-      operationalCost: 0
-    };
-
-    expenses.forEach((e) => {
-      if (e.deleted) return;
-      counts.totalExpenses += e.amount || 0;
-      counts.operationalCost += e.amount || 0;
-
-      if (e.type === "Fuel") counts.fuelExpenses += e.amount;
-      else if (e.type === "Maintenance") counts.maintenanceExpenses += e.amount;
-      else if (e.type === "Toll") counts.tollExpenses += e.amount;
-      else if (e.type === "Repair") counts.repairExpenses += e.amount;
-      else counts.miscExpenses += e.amount;
-    });
-
-    return counts;
-  }, [expenses, summary]);
-
-  // Client-Side Search, Filter & Sort logic
-  const filteredAndSortedExpenses = useMemo(() => {
-    let result = [...expenses];
-
-    // 1. Search filter
-    if (searchTerm) {
-      const termLower = searchTerm.toLowerCase();
-      result = result.filter(
-        (e) =>
-          e.id.toLowerCase().includes(termLower) ||
-          e.vehicle.toLowerCase().includes(termLower) ||
-          e.tripId.toLowerCase().includes(termLower) ||
-          e.type.toLowerCase().includes(termLower) ||
-          e.vendor.toLowerCase().includes(termLower) ||
-          e.invoiceNumber.toLowerCase().includes(termLower)
-      );
-    }
-
-    // 2. Advanced filters
-    if (filters.type) {
-      result = result.filter((e) => e.type === filters.type);
-    }
-    if (filters.vehicle) {
-      result = result.filter((e) => e.vehicle.toLowerCase().includes(filters.vehicle.toLowerCase()));
-    }
-    if (filters.tripId) {
-      result = result.filter((e) => e.tripId.toLowerCase().includes(filters.tripId.toLowerCase()));
-    }
-    if (filters.vendor) {
-      result = result.filter((e) => e.vendor.toLowerCase().includes(filters.vendor.toLowerCase()));
-    }
-    if (filters.status) {
-      result = result.filter((e) => e.status === filters.status);
-    }
-    if (filters.region) {
-      result = result.filter((e) => e.vendor.toLowerCase().includes(filters.region.toLowerCase()) || e.remarks?.toLowerCase().includes(filters.region.toLowerCase()));
-    }
-    if (filters.startDate) {
-      result = result.filter((e) => e.date >= filters.startDate);
-    }
-    if (filters.endDate) {
-      result = result.filter((e) => e.date <= filters.endDate);
-    }
-
-    // 3. Sorting
-    if (sorting.field) {
-      const f = sorting.field;
-      const orderMultiplier = sorting.order === "asc" ? 1 : -1;
-
-      result.sort((a, b) => {
-        let valA = a[f];
-        let valB = b[f];
-
-        if (typeof valA === "string") valA = valA.toLowerCase();
-        if (typeof valB === "string") valB = valB.toLowerCase();
-
-        if (valA < valB) return -1 * orderMultiplier;
-        if (valA > valB) return 1 * orderMultiplier;
-        return 0;
-      });
-    }
-
-    return result;
-  }, [expenses, searchTerm, filters, sorting]);
-
-  // Paginated Results
-  const paginatedExpenses = useMemo(() => {
-    const start = pagination.pageIndex * pagination.pageSize;
-    const end = start + pagination.pageSize;
-    return filteredAndSortedExpenses.slice(start, end);
-  }, [filteredAndSortedExpenses, pagination]);
-
-  const pageCount = Math.ceil(filteredAndSortedExpenses.length / pagination.pageSize);
+  const allVisibleIds = useMemo(() => expenses.map((e) => e.id), [expenses]);
 
   return {
-    expenses: paginatedExpenses,
-    totalCount: filteredAndSortedExpenses.length,
-    allVisibleIds: paginatedExpenses.map((e) => e.id),
+    expenses,
+    totalCount,
+    allVisibleIds,
     isLoading,
     error,
     searchTerm,
@@ -296,7 +239,6 @@ export const useExpenses = () => {
     toggleSelectRow,
     toggleSelectAll,
     summaryCounts,
-    chartsData: charts,
     addExpense,
     editExpense,
     deleteExpense,

@@ -22,6 +22,7 @@ import Button from "../Button/Button";
 import EmptyState from "../EmptyState/EmptyState";
 import styles from "./ExpenseTable.module.css";
 import tableStyles from "../Table/Table.module.css";
+import ActionMenu from "../ActionMenu/ActionMenu";
 
 export const ExpenseTable = ({
   data = [],
@@ -287,85 +288,60 @@ export const ExpenseTable = ({
 
                   {/* Actions Dropdown */}
                   <td className={`${tableStyles.td} ${styles.actionCell}`}>
-                    <div style={{ position: "relative", display: "inline-block" }}>
+                    <ActionMenu
+                      isOpen={activeMenuId === row.id}
+                      onOpen={() => setActiveMenuId(row.id)}
+                      onClose={() => setActiveMenuId(null)}
+                    >
                       <button
                         type="button"
-                        onClick={() => setActiveMenuId(activeMenuId === row.id ? null : row.id)}
-                        style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "0.25rem", borderRadius: "var(--radius-xs)" }}
+                        className={tableStyles.pageButton}
+                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
+                        onClick={() => onView(row.id)}
                       >
-                        <MoreVertical size={18} />
+                        <Eye size={14} /> View Details
                       </button>
 
-                      {activeMenuId === row.id && (
-                        <div
-                          ref={menuRef}
-                          style={{
-                            position: "absolute",
-                            right: "100%",
- Top: 0,
-                            width: "180px",
-                            backgroundColor: "var(--bg-secondary)",
-                            border: "1px solid var(--border-color)",
-                            borderRadius: "var(--radius-md)",
-                            boxShadow: "var(--shadow-xl)",
-                            zIndex: 85,
-                            overflow: "hidden",
-                            display: "flex",
-                            flexDirection: "column",
-                            marginRight: "0.5rem"
-                          }}
+                      <button
+                        type="button"
+                        className={tableStyles.pageButton}
+                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
+                        onClick={() => onEdit(row.id)}
+                      >
+                        <Edit2 size={14} /> Edit Expense
+                      </button>
+
+                      <button
+                        type="button"
+                        className={tableStyles.pageButton}
+                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--danger)" }}
+                        onClick={() => onDelete(row.id)}
+                      >
+                        <Trash2 size={14} /> Delete Expense
+                      </button>
+
+                      <div style={{ height: "1px", backgroundColor: "var(--border-color)", margin: "0.25rem 0" }} />
+
+                      <button
+                        type="button"
+                        className={tableStyles.pageButton}
+                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
+                        onClick={() => navigate(`/vehicles?id=${row.vehicle.match(/\(([^)]+)\)/)?.[1] || ""}`)}
+                      >
+                        <Truck size={14} /> View Vehicle
+                      </button>
+
+                      {row.tripId && (
+                        <button
+                          type="button"
+                          className={tableStyles.pageButton}
+                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
+                          onClick={() => navigate(`/trips?id=${row.tripId}`)}
                         >
-                          <button
-                            type="button"
-                            className={tableStyles.pageButton}
-                            style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
-                            onClick={() => { onView(row.id); setActiveMenuId(null); }}
-                          >
-                            <Eye size={14} /> View Details
-                          </button>
-
-                          <button
-                            type="button"
-                            className={tableStyles.pageButton}
-                            style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
-                            onClick={() => { onEdit(row.id); setActiveMenuId(null); }}
-                          >
-                            <Edit2 size={14} /> Edit Expense
-                          </button>
-
-                          <button
-                            type="button"
-                            className={tableStyles.pageButton}
-                            style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--danger)" }}
-                            onClick={() => { onDelete(row.id); setActiveMenuId(null); }}
-                          >
-                            <Trash2 size={14} /> Delete Expense
-                          </button>
-
-                          <div style={{ height: "1px", backgroundColor: "var(--border-color)", margin: "0.25rem 0" }} />
-
-                          <button
-                            type="button"
-                            className={tableStyles.pageButton}
-                            style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
-                            onClick={() => { navigate(`/vehicles?id=${row.vehicle.match(/\(([^)]+)\)/)?.[1] || ""}`); setActiveMenuId(null); }}
-                          >
-                            <Truck size={14} /> View Vehicle
-                          </button>
-
-                          {row.tripId && (
-                            <button
-                              type="button"
-                              className={tableStyles.pageButton}
-                              style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
-                              onClick={() => { navigate(`/trips?id=${row.tripId}`); setActiveMenuId(null); }}
-                            >
-                              <Compass size={14} /> View Trip Details
-                            </button>
-                          )}
-                        </div>
+                          <Compass size={14} /> View Trip Details
+                        </button>
                       )}
-                    </div>
+                    </ActionMenu>
                   </td>
                 </tr>
               ))}

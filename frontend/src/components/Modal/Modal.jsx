@@ -12,17 +12,26 @@ export const Modal = ({
   size = "md",
   closeOnBackdropClick = true
 }) => {
-  // Prevent body scroll when modal is open
+  // Prevent body scroll when modal is open and add keydown listener
   useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
     if (isOpen) {
       document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", handleKeyDown);
     } else {
       document.body.style.overflow = "unset";
     }
+
     return () => {
       document.body.style.overflow = "unset";
+      window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   const handleBackdropClick = (e) => {
     if (closeOnBackdropClick && e.target === e.currentTarget) {

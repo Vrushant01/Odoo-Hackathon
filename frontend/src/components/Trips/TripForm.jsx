@@ -138,7 +138,7 @@ export const TripForm = ({ defaultValues, onSubmit, onCancel, isEdit = false }) 
   ];
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <form onSubmit={handleSubmit(handleFormSubmit)} style={{ display: "flex", flexDirection: "column", height: "100%", maxHeight: "calc(90vh - 160px)", overflow: "hidden" }}>
       {submitError && (
         <div style={{
           display: "flex",
@@ -150,83 +150,85 @@ export const TripForm = ({ defaultValues, onSubmit, onCancel, isEdit = false }) 
           borderRadius: "var(--radius-sm)",
           fontSize: "0.875rem",
           fontWeight: 600,
-          border: "1px solid hsla(var(--danger-h), var(--danger-s), var(--danger-l), 0.2)"
+          border: "1px solid hsla(var(--danger-h), var(--danger-s), var(--danger-l), 0.2)",
+          marginBottom: "0.5rem"
         }}>
           <AlertCircle size={16} />
           <span>{submitError}</span>
         </div>
       )}
 
-      {/* Grid Inputs */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-        gap: "1rem",
-        maxHeight: "55vh",
-        overflowY: "auto",
-        paddingRight: "0.25rem",
-        paddingBottom: "0.5rem"
-      }}>
-        <Input label="Origin (Source)" placeholder="e.g. Houston, TX" error={errors.source?.message} disabled={loading} {...register("source")} />
-        
-        <Input label="Destination" placeholder="e.g. Dallas, TX" error={errors.destination?.message} disabled={loading} {...register("destination")} />
+      {/* Scrollable Form Body */}
+      <div style={{ flex: 1, overflowY: "auto", paddingRight: "0.5rem", paddingBottom: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "1rem",
+          paddingRight: "0.25rem",
+          paddingBottom: "0.5rem"
+        }}>
+          <Input label="Origin (Source)" placeholder="e.g. Houston, TX" error={errors.source?.message} disabled={loading} autoFocus {...register("source")} />
+          
+          <Input label="Destination" placeholder="e.g. Dallas, TX" error={errors.destination?.message} disabled={loading} {...register("destination")} />
 
-        <Select label="Assign Vehicle" error={errors.vehicle?.message} options={vehicleOptions} disabled={loading} {...register("vehicle")} />
+          <Select label="Assign Vehicle" error={errors.vehicle?.message} options={vehicleOptions} disabled={loading} {...register("vehicle")} />
 
-        <Select label="Assign Driver" error={errors.driver?.message} options={driverOptions} disabled={loading} {...register("driver")} />
+          <Select label="Assign Driver" error={errors.driver?.message} options={driverOptions} disabled={loading} {...register("driver")} />
 
-        <Input label="Cargo Payload Description" placeholder="e.g. Industrial Generators" error={errors.cargoDescription?.message} disabled={loading} {...register("cargoDescription")} />
+          <Input label="Cargo Payload Description" placeholder="e.g. Industrial Generators" error={errors.cargoDescription?.message} disabled={loading} {...register("cargoDescription")} />
 
-        <Input label="Cargo Payload Weight (lbs)" type="number" placeholder="e.g. 15000" error={errors.cargoWeight?.message} disabled={loading} {...register("cargoWeight")} />
+          <Input label="Cargo Payload Weight (lbs)" type="number" placeholder="e.g. 15000" error={errors.cargoWeight?.message} disabled={loading} {...register("cargoWeight")} />
 
-        <Input label="Planned Distance (miles)" type="number" placeholder="e.g. 240" error={errors.plannedDistance?.message} disabled={loading} {...register("plannedDistance")} />
+          <Input label="Planned Distance (miles)" type="number" placeholder="e.g. 240" error={errors.plannedDistance?.message} disabled={loading} {...register("plannedDistance")} />
 
-        <Input label="Expected Duration (hours)" type="number" step="0.1" placeholder="e.g. 5.5" error={errors.expectedDuration?.message} disabled={loading} {...register("expectedDuration")} />
+          <Input label="Expected Duration (hours)" type="number" step="0.1" placeholder="e.g. 5.5" error={errors.expectedDuration?.message} disabled={loading} {...register("expectedDuration")} />
 
-        <Select label="Trip Priority" error={errors.priority?.message} options={priorities} disabled={loading} {...register("priority")} />
+          <Select label="Trip Priority" error={errors.priority?.message} options={priorities} disabled={loading} {...register("priority")} />
 
-        <DatePicker label="Expected Completion Date" error={errors.expectedCompletion?.message} disabled={loading} {...register("expectedCompletion")} />
+          <DatePicker label="Expected Completion Date" error={errors.expectedCompletion?.message} disabled={loading} {...register("expectedCompletion")} />
+        </div>
+
+        {selectedVehicleCapacity > 0 && (
+          <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", fontWeight: 600, padding: "0.25rem 0" }}>
+            Selected Vehicle Cargo Capacity Limit: <strong style={{ color: "var(--primary)" }}>{selectedVehicleCapacity.toLocaleString()} lbs</strong>
+          </div>
+        )}
+
+        {cargoExceedsWarning && (
+          <div style={{
+            display: "flex",
+            gap: "0.5rem",
+            alignItems: "center",
+            padding: "0.75rem 1rem",
+            background: "var(--warning-light)",
+            color: "var(--warning)",
+            borderRadius: "var(--radius-sm)",
+            fontSize: "0.825rem",
+            fontWeight: 600,
+            border: "1px solid hsla(var(--warning-h), var(--warning-s), var(--warning-l), 0.2)"
+          }}>
+            <AlertTriangle size={16} />
+            <span>Warning: Cargo payload weight exceeds the maximum load capacity of the assigned vehicle!</span>
+          </div>
+        )}
+
+        <Textarea
+          label="Trip Notes / Special Instructions"
+          placeholder="Add details, route restrictions, delivery contact, or payload safety tags..."
+          error={errors.notes?.message}
+          disabled={loading}
+          {...register("notes")}
+        />
       </div>
 
-      {selectedVehicleCapacity > 0 && (
-        <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", fontWeight: 600, padding: "0.25rem 0" }}>
-          Selected Vehicle Cargo Capacity Limit: <strong style={{ color: "var(--primary)" }}>{selectedVehicleCapacity.toLocaleString()} lbs</strong>
-        </div>
-      )}
-
-      {cargoExceedsWarning && (
-        <div style={{
-          display: "flex",
-          gap: "0.5rem",
-          alignItems: "center",
-          padding: "0.75rem 1rem",
-          background: "var(--warning-light)",
-          color: "var(--warning)",
-          borderRadius: "var(--radius-sm)",
-          fontSize: "0.825rem",
-          fontWeight: 600,
-          border: "1px solid hsla(var(--warning-h), var(--warning-s), var(--warning-l), 0.2)"
-        }}>
-          <AlertTriangle size={16} />
-          <span>Warning: Cargo payload weight exceeds the maximum load capacity of the assigned vehicle!</span>
-        </div>
-      )}
-
-      <Textarea
-        label="Trip Notes / Special Instructions"
-        placeholder="Add details, route restrictions, delivery contact, or payload safety tags..."
-        error={errors.notes?.message}
-        disabled={loading}
-        {...register("notes")}
-      />
-
+      {/* Action Buttons (Sticky Footer) */}
       <div style={{
         display: "flex",
         justifyContent: "flex-end",
         gap: "0.75rem",
         borderTop: "1px solid var(--border-color)",
         paddingTop: "1rem",
-        marginTop: "0.5rem"
+        marginTop: "auto"
       }}>
         <Button variant="secondary" onClick={onCancel} disabled={loading}>
           Cancel

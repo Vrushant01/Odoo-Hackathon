@@ -1,27 +1,26 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import fuelService from "../services/fuelService";
+import { useGlobalFilters } from "../contexts/FilterContext";
 
 export const useFuel = () => {
-  const [logs, setLogs] = useState([]);
+  const [fuelLogs, setFuelLogs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // Charts & Stats Aggregations
-  const [summary, setSummary] = useState(null);
-  const [charts, setCharts] = useState(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const [pageCount, setPageCount] = useState(0);
+  const [summaryCounts, setSummaryCounts] = useState({ totalLogs: 0, totalFuelUsed: 0, totalFuelCost: 0, avgPrice: 0 });
+
+  // Global filters from context
+  const { globalFilters } = useGlobalFilters();
 
   // Search & Filters State
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
-    vehicle: "",
-    driver: "",
-    tripId: "",
+    vehicleType: "",
     fuelType: "",
-    startDate: "",
-    endDate: "",
-    fuelStation: "",
-    region: ""
+    station: "",
+    dateRange: { start: "", end: "" }
   });
 
   // Sorting State
@@ -39,28 +38,75 @@ export const useFuel = () => {
   // Row Selection (Bulk Actions)
   const [selectedIds, setSelectedIds] = useState([]);
 
+  // Fetch fuel stats from backend
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'}/fuel/statistics`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("transitops_token") || sessionStorage.getItem("transitops_token")}`
+        }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSummaryCounts({
+          totalLogs: data.data.totalFuelLogs || 0,
+          totalFuelUsed: data.data.totalFuelLiters || 0,
+          totalFuelCost: data.data.totalCost || 0,
+          avgPrice: data.data.averagePricePerUnit || 0
+        });
+      }
+    } catch (e) {
+      console.error("Failed to load fuel statistics:", e);
+    }
+  }, []);
+
   // Fetch fuel logs
   const fetchFuel = useCallback(async (isSilent = false) => {
     if (!isSilent) setIsLoading(true);
     setError(null);
 
     try {
-      const [logsData, sumData, chartsData] = await Promise.all([
-        fuelService.getFuelLogs(),
-        fuelService.getFuelSummary(),
-        fuelService.getFuelCharts()
-      ]);
-      setLogs(logsData);
-      setSummary(sumData);
-      setCharts(chartsData);
+      const res = await fuelService.getFuelLogs({
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        search: searchTerm,
+        sort: sorting.field,
+        sortOrder: sorting.order,
+        // Global filter passthrough
+        vehicleType: globalFilters.vehicleType,
+        startDate: globalFilters.startDate,
+        endDate: globalFilters.endDate
+      });
+
+      if (res && res.fuelLogs) {
+        setFuelLogs(res.fuelLogs);
+        setPageCount(res.pagination.totalPages);
+        setTotalCount(res.pagination.totalResults);
+      } else {
+        setFuelLogs(res);
+        setPageCount(1);
+        setTotalCount(res.length);
+      }
+      fetchStats();
     } catch (err) {
       console.error(err);
       setError("Failed to fetch fuel logs.");
-      toast.error("Failed to load fuel records.");
+      toast.error("Failed to load fuel registry.");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [
+    pagination.pageIndex,
+    pagination.pageSize,
+    searchTerm,
+    sorting.field,
+    sorting.order,
+    // Global filter dependencies
+    globalFilters.vehicleType,
+    globalFilters.startDate,
+    globalFilters.endDate,
+    fetchStats
+  ]);
 
   useEffect(() => {
     fetchFuel();
@@ -69,10 +115,10 @@ export const useFuel = () => {
   const refresh = useCallback(() => {
     fetchFuel(true);
     setSelectedIds([]);
-    toast.success("Fuel logs ledger refreshed.");
+    toast.success("Fuel logs registry refreshed.");
   }, [fetchFuel]);
 
-  // Filter Updates
+  // Filters Handler
   const updateFilter = useCallback((key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
@@ -80,14 +126,10 @@ export const useFuel = () => {
 
   const resetFilters = useCallback(() => {
     setFilters({
-      vehicle: "",
-      driver: "",
-      tripId: "",
+      vehicleType: "",
       fuelType: "",
-      startDate: "",
-      endDate: "",
-      fuelStation: "",
-      region: ""
+      station: "",
+      dateRange: { start: "", end: "" }
     });
     setSearchTerm("");
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
@@ -95,15 +137,15 @@ export const useFuel = () => {
     toast.success("Filters reset successfully.");
   }, []);
 
-  // CRUD
+  // CRUD Operations
   const addFuelLog = async (data) => {
     try {
       const newLog = await fuelService.createFuelLog(data);
-      toast.success(`Fuel log ${newLog.id} added.`);
+      toast.success(`Fuel log ${newLog.invoiceNumber} created.`);
       fetchFuel(true);
       return newLog;
     } catch (err) {
-      toast.error("Failed to add fuel log.");
+      toast.error(err.message || "Failed to create fuel log.");
       throw err;
     }
   };
@@ -111,11 +153,11 @@ export const useFuel = () => {
   const editFuelLog = async (id, data) => {
     try {
       const updated = await fuelService.updateFuelLog(id, data);
-      toast.success(`Fuel log ${updated.id} updated.`);
+      toast.success(`Fuel log ${updated.invoiceNumber} updated.`);
       fetchFuel(true);
       return updated;
     } catch (err) {
-      toast.error("Failed to update fuel log.");
+      toast.error(err.message || "Failed to update fuel log.");
       throw err;
     }
   };
@@ -146,13 +188,13 @@ export const useFuel = () => {
 
   const bulkExport = (format = "csv") => {
     if (selectedIds.length === 0) {
-      toast.warning("Please select at least one log to export.");
+      toast.warning("Please select at least one fuel log to export.");
       return;
     }
-    toast.info(`Exporting ${selectedIds.length} logs to ${format.toUpperCase()} (Mock).`);
+    toast.info(`Exporting ${selectedIds.length} records to ${format.toUpperCase()} (Mock).`);
   };
 
-  // Selection helpers
+  // Row Selection Helpers
   const toggleSelectRow = (id) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
@@ -170,110 +212,12 @@ export const useFuel = () => {
     }
   };
 
-  // KPI summary counters derived from active list
-  const summaryCounts = useMemo(() => {
-    if (summary) return summary;
-
-    // Fallback counts if summary service not loaded
-    const counts = {
-      totalEntries: 0,
-      todaysFuel: 0,
-      monthlyFuel: 0,
-      totalFuelCost: 0,
-      avgFuelEfficiency: "N/A",
-      avgFuelPrice: 0,
-      highestConsumptionVehicle: "N/A",
-      lowestConsumptionVehicle: "N/A"
-    };
-
-    logs.forEach((l) => {
-      if (l.deleted) return;
-      counts.totalEntries++;
-      counts.totalFuelCost += l.totalCost || 0;
-    });
-
-    return counts;
-  }, [logs, summary]);
-
-  // Client-Side Search, Filter & Sort logic
-  const filteredAndSortedLogs = useMemo(() => {
-    let result = [...logs];
-
-    // 1. Search filter
-    if (searchTerm) {
-      const termLower = searchTerm.toLowerCase();
-      result = result.filter(
-        (l) =>
-          l.id.toLowerCase().includes(termLower) ||
-          l.vehicle.toLowerCase().includes(termLower) ||
-          l.driver.toLowerCase().includes(termLower) ||
-          l.tripId.toLowerCase().includes(termLower) ||
-          l.fuelStation.toLowerCase().includes(termLower) ||
-          l.fuelType.toLowerCase().includes(termLower) ||
-          l.invoiceNumber.toLowerCase().includes(termLower)
-      );
-    }
-
-    // 2. Advanced filters
-    if (filters.vehicle) {
-      result = result.filter((l) => l.vehicle.toLowerCase().includes(filters.vehicle.toLowerCase()));
-    }
-    if (filters.driver) {
-      result = result.filter((l) => l.driver.toLowerCase().includes(filters.driver.toLowerCase()));
-    }
-    if (filters.tripId) {
-      result = result.filter((l) => l.tripId.toLowerCase().includes(filters.tripId.toLowerCase()));
-    }
-    if (filters.fuelType) {
-      result = result.filter((l) => l.fuelType === filters.fuelType);
-    }
-    if (filters.fuelStation) {
-      result = result.filter((l) => l.fuelStation.toLowerCase().includes(filters.fuelStation.toLowerCase()));
-    }
-    if (filters.region) {
-      result = result.filter((l) => l.fuelStation.toLowerCase().includes(filters.region.toLowerCase()) || l.remarks?.toLowerCase().includes(filters.region.toLowerCase()));
-    }
-    if (filters.startDate) {
-      result = result.filter((l) => l.date >= filters.startDate);
-    }
-    if (filters.endDate) {
-      result = result.filter((l) => l.date <= filters.endDate);
-    }
-
-    // 3. Sorting
-    if (sorting.field) {
-      const f = sorting.field;
-      const orderMultiplier = sorting.order === "asc" ? 1 : -1;
-
-      result.sort((a, b) => {
-        let valA = a[f];
-        let valB = b[f];
-
-        if (typeof valA === "string") valA = valA.toLowerCase();
-        if (typeof valB === "string") valB = valB.toLowerCase();
-
-        if (valA < valB) return -1 * orderMultiplier;
-        if (valA > valB) return 1 * orderMultiplier;
-        return 0;
-      });
-    }
-
-    return result;
-  }, [logs, searchTerm, filters, sorting]);
-
-  // Paginated Results
-  const paginatedLogs = useMemo(() => {
-    const start = pagination.pageIndex * pagination.pageSize;
-    const end = start + pagination.pageSize;
-    return filteredAndSortedLogs.slice(start, end);
-  }, [filteredAndSortedLogs, pagination]);
-
-  const pageCount = Math.ceil(filteredAndSortedLogs.length / pagination.pageSize);
+  const allVisibleIds = useMemo(() => fuelLogs.map((f) => f.id), [fuelLogs]);
 
   return {
-    logs: paginatedLogs,
-    totalCount: filteredAndSortedLogs.length,
-    allVisibleIds: paginatedLogs.map((l) => l.id),
+    fuelLogs,
+    totalCount,
+    allVisibleIds,
     isLoading,
     error,
     searchTerm,
@@ -291,7 +235,6 @@ export const useFuel = () => {
     toggleSelectRow,
     toggleSelectAll,
     summaryCounts,
-    chartsData: charts,
     addFuelLog,
     editFuelLog,
     deleteFuelLog,

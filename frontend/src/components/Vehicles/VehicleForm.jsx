@@ -104,7 +104,7 @@ export const VehicleForm = ({ defaultValues, onSubmit, onCancel, isEdit = false 
   ];
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <form onSubmit={handleSubmit(handleFormSubmit)} style={{ display: "flex", flexDirection: "column", height: "100%", maxHeight: "calc(90vh - 160px)", overflow: "hidden" }}>
       {submitError && (
         <div style={{
           display: "flex",
@@ -116,203 +116,206 @@ export const VehicleForm = ({ defaultValues, onSubmit, onCancel, isEdit = false 
           borderRadius: "var(--radius-sm)",
           fontSize: "0.875rem",
           fontWeight: 600,
-          border: "1px solid hsla(var(--danger-h), var(--danger-s), var(--danger-l), 0.2)"
+          border: "1px solid hsla(var(--danger-h), var(--danger-s), var(--danger-l), 0.2)",
+          marginBottom: "0.5rem"
         }}>
           <AlertCircle size={16} />
           <span>{submitError}</span>
         </div>
       )}
 
-      {isRetired && (
+      {/* Scrollable Form Body */}
+      <div style={{ flex: 1, overflowY: "auto", paddingRight: "0.5rem", paddingBottom: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+        {isRetired && (
+          <div style={{
+            padding: "0.75rem 1rem",
+            background: "var(--bg-tertiary)",
+            color: "var(--text-secondary)",
+            borderRadius: "var(--radius-sm)",
+            fontSize: "0.85rem",
+            fontWeight: 600,
+            textAlign: "center",
+            border: "1px solid var(--border-color)",
+            marginBottom: "0.5rem"
+          }}>
+            This vehicle is retired. Editing is disabled.
+          </div>
+        )}
+
+        {/* Inputs Grid Layout */}
         <div style={{
-          padding: "0.75rem 1rem",
-          background: "var(--bg-tertiary)",
-          color: "var(--text-secondary)",
-          borderRadius: "var(--radius-sm)",
-          fontSize: "0.85rem",
-          fontWeight: 600,
-          textAlign: "center",
-          border: "1px solid var(--border-color)",
-          marginBottom: "0.5rem"
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "1rem",
+          paddingRight: "0.25rem",
+          paddingBottom: "0.5rem"
         }}>
-          This vehicle is retired. Editing is disabled.
+          {/* Registration Number */}
+          <Input
+            label="Registration Number (Plate)"
+            placeholder="e.g. TX-9082"
+            error={errors.plateNumber?.message}
+            disabled={loading || isRetired || (isEdit && isRetired)}
+            autoFocus
+            {...register("plateNumber")}
+          />
+
+          {/* Vehicle Name */}
+          <Input
+            label="Vehicle Name"
+            placeholder="e.g. Freightliner Cascadia"
+            error={errors.name?.message}
+            disabled={loading || isRetired}
+            {...register("name")}
+          />
+
+          {/* Model */}
+          <Input
+            label="Vehicle Model"
+            placeholder="e.g. Cascadia"
+            error={errors.model?.message}
+            disabled={loading || isRetired}
+            {...register("model")}
+          />
+
+          {/* Manufacturer */}
+          <Input
+            label="Manufacturer"
+            placeholder="e.g. Freightliner"
+            error={errors.manufacturer?.message}
+            disabled={loading || isRetired}
+            {...register("manufacturer")}
+          />
+
+          {/* Manufacturing Year */}
+          <Input
+            label="Manufacturing Year"
+            type="number"
+            placeholder="e.g. 2022"
+            error={errors.year?.message}
+            disabled={loading || isRetired}
+            {...register("year")}
+          />
+
+          {/* Vehicle Type */}
+          <Select
+            label="Asset Type"
+            error={errors.type?.message}
+            options={types}
+            disabled={loading || isRetired}
+            {...register("type")}
+          />
+
+          {/* Fuel Type */}
+          <Select
+            label="Fuel Type"
+            error={errors.fuelType?.message}
+            options={fuelTypes}
+            disabled={loading || isRetired}
+            {...register("fuelType")}
+          />
+
+          {/* Load Capacity */}
+          <Input
+            label="Max Load Capacity (lbs)"
+            type="number"
+            placeholder="e.g. 45000"
+            error={errors.loadCapacity?.message}
+            disabled={loading || isRetired}
+            {...register("loadCapacity")}
+          />
+
+          {/* Current Odometer */}
+          <Input
+            label="Current Odometer (miles)"
+            type="number"
+            placeholder="e.g. 145000"
+            error={errors.odometer?.message}
+            disabled={loading || isRetired}
+            {...register("odometer")}
+          />
+
+          {/* Acquisition Cost */}
+          <Input
+            label="Acquisition Cost (USD)"
+            type="number"
+            placeholder="e.g. 135000"
+            error={errors.cost?.message}
+            disabled={loading || isRetired}
+            {...register("cost")}
+          />
+
+          {/* Purchase Date */}
+          <DatePicker
+            label="Purchase Date"
+            error={errors.purchaseDate?.message}
+            disabled={loading || isRetired}
+            {...register("purchaseDate")}
+          />
+
+          {/* Region */}
+          <Select
+            label="Region Hub"
+            error={errors.region?.message}
+            options={regions}
+            disabled={loading || isRetired}
+            {...register("region")}
+          />
+
+          {/* Insurance Number */}
+          <Input
+            label="Insurance Policy Number"
+            placeholder="e.g. INS-TX-98127"
+            error={errors.insuranceNumber?.message}
+            disabled={loading || isRetired}
+            {...register("insuranceNumber")}
+          />
+
+          {/* Insurance Expiry */}
+          <DatePicker
+            label="Insurance Expiration"
+            error={errors.insuranceExpiry?.message}
+            disabled={loading || isRetired}
+            {...register("insuranceExpiry")}
+          />
+
+          {/* RC Number */}
+          <Input
+            label="RC Registration Code"
+            placeholder="e.g. RC-TX-88271A"
+            error={errors.rcNumber?.message}
+            disabled={loading || isRetired}
+            {...register("rcNumber")}
+          />
+
+          {/* Status */}
+          <Select
+            label="Asset Status"
+            error={errors.status?.message}
+            options={statuses}
+            disabled={loading || isRetired}
+            {...register("status")}
+          />
         </div>
-      )}
 
-      {/* Inputs Grid Layout */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-        gap: "1rem",
-        maxHeight: "60vh",
-        overflowY: "auto",
-        paddingRight: "0.25rem",
-        paddingBottom: "0.5rem"
-      }}>
-        {/* Registration Number */}
-        <Input
-          label="Registration Number (Plate)"
-          placeholder="e.g. TX-9082"
-          error={errors.plateNumber?.message}
-          disabled={loading || isRetired || (isEdit && isRetired)}
-          {...register("plateNumber")}
-        />
-
-        {/* Vehicle Name */}
-        <Input
-          label="Vehicle Name"
-          placeholder="e.g. Freightliner Cascadia"
-          error={errors.name?.message}
+        {/* Notes */}
+        <Textarea
+          label="Operational Notes"
+          placeholder="Add details, maintenance remarks, or special equipment specs..."
+          error={errors.notes?.message}
           disabled={loading || isRetired}
-          {...register("name")}
-        />
-
-        {/* Model */}
-        <Input
-          label="Vehicle Model"
-          placeholder="e.g. Cascadia"
-          error={errors.model?.message}
-          disabled={loading || isRetired}
-          {...register("model")}
-        />
-
-        {/* Manufacturer */}
-        <Input
-          label="Manufacturer"
-          placeholder="e.g. Freightliner"
-          error={errors.manufacturer?.message}
-          disabled={loading || isRetired}
-          {...register("manufacturer")}
-        />
-
-        {/* Manufacturing Year */}
-        <Input
-          label="Manufacturing Year"
-          type="number"
-          placeholder="e.g. 2022"
-          error={errors.year?.message}
-          disabled={loading || isRetired}
-          {...register("year")}
-        />
-
-        {/* Vehicle Type */}
-        <Select
-          label="Asset Type"
-          error={errors.type?.message}
-          options={types}
-          disabled={loading || isRetired}
-          {...register("type")}
-        />
-
-        {/* Fuel Type */}
-        <Select
-          label="Fuel Type"
-          error={errors.fuelType?.message}
-          options={fuelTypes}
-          disabled={loading || isRetired}
-          {...register("fuelType")}
-        />
-
-        {/* Load Capacity */}
-        <Input
-          label="Max Load Capacity (lbs)"
-          type="number"
-          placeholder="e.g. 45000"
-          error={errors.loadCapacity?.message}
-          disabled={loading || isRetired}
-          {...register("loadCapacity")}
-        />
-
-        {/* Current Odometer */}
-        <Input
-          label="Current Odometer (miles)"
-          type="number"
-          placeholder="e.g. 145000"
-          error={errors.odometer?.message}
-          disabled={loading || isRetired}
-          {...register("odometer")}
-        />
-
-        {/* Acquisition Cost */}
-        <Input
-          label="Acquisition Cost (USD)"
-          type="number"
-          placeholder="e.g. 135000"
-          error={errors.cost?.message}
-          disabled={loading || isRetired}
-          {...register("cost")}
-        />
-
-        {/* Purchase Date */}
-        <DatePicker
-          label="Purchase Date"
-          error={errors.purchaseDate?.message}
-          disabled={loading || isRetired}
-          {...register("purchaseDate")}
-        />
-
-        {/* Region */}
-        <Select
-          label="Region Hub"
-          error={errors.region?.message}
-          options={regions}
-          disabled={loading || isRetired}
-          {...register("region")}
-        />
-
-        {/* Insurance Number */}
-        <Input
-          label="Insurance Policy Number"
-          placeholder="e.g. INS-TX-98127"
-          error={errors.insuranceNumber?.message}
-          disabled={loading || isRetired}
-          {...register("insuranceNumber")}
-        />
-
-        {/* Insurance Expiry */}
-        <DatePicker
-          label="Insurance Expiration"
-          error={errors.insuranceExpiry?.message}
-          disabled={loading || isRetired}
-          {...register("insuranceExpiry")}
-        />
-
-        {/* RC Number */}
-        <Input
-          label="RC Registration Code"
-          placeholder="e.g. RC-TX-88271A"
-          error={errors.rcNumber?.message}
-          disabled={loading || isRetired}
-          {...register("rcNumber")}
-        />
-
-        {/* Status */}
-        <Select
-          label="Asset Status"
-          error={errors.status?.message}
-          options={statuses}
-          disabled={loading || isRetired}
-          {...register("status")}
+          {...register("notes")}
         />
       </div>
 
-      {/* Notes */}
-      <Textarea
-        label="Operational Notes"
-        placeholder="Add details, maintenance remarks, or special equipment specs..."
-        error={errors.notes?.message}
-        disabled={loading || isRetired}
-        {...register("notes")}
-      />
-
-      {/* Form Buttons */}
+      {/* Form Buttons (Sticky Footer) */}
       <div style={{
         display: "flex",
         justifyContent: "flex-end",
         gap: "0.75rem",
         borderTop: "1px solid var(--border-color)",
         paddingTop: "1rem",
-        marginTop: "0.5rem"
+        marginTop: "auto"
       }}>
         <Button variant="secondary" onClick={onCancel} disabled={loading}>
           Cancel

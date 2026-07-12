@@ -27,6 +27,7 @@ import Button from "../Button/Button";
 import EmptyState from "../EmptyState/EmptyState";
 import styles from "./TripTable.module.css";
 import tableStyles from "../Table/Table.module.css";
+import ActionMenu from "../ActionMenu/ActionMenu";
 
 export const TripTable = ({
   data = [],
@@ -300,118 +301,93 @@ export const TripTable = ({
 
                   {/* Actions Dropdown */}
                   <td className={`${tableStyles.td} ${styles.actionCell}`}>
-                    <div style={{ position: "relative", display: "inline-block" }}>
+                    <ActionMenu
+                      isOpen={activeMenuId === row.id}
+                      onOpen={() => setActiveMenuId(row.id)}
+                      onClose={() => setActiveMenuId(null)}
+                    >
                       <button
                         type="button"
-                        onClick={() => setActiveMenuId(activeMenuId === row.id ? null : row.id)}
-                        style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "0.25rem", borderRadius: "var(--radius-xs)" }}
+                        className={tableStyles.pageButton}
+                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
+                        onClick={() => onView(row.id)}
                       >
-                        <MoreVertical size={18} />
+                        <Eye size={14} /> View Details
                       </button>
 
-                      {activeMenuId === row.id && (
-                        <div
-                          ref={menuRef}
-                          style={{
-                            position: "absolute",
-                            right: "100%",
-                            top: 0,
-                            width: "180px",
-                            backgroundColor: "var(--bg-secondary)",
-                            border: "1px solid var(--border-color)",
-                            borderRadius: "var(--radius-md)",
-                            boxShadow: "var(--shadow-xl)",
-                            zIndex: 85,
-                            overflow: "hidden",
-                            display: "flex",
-                            flexDirection: "column",
-                            marginRight: "0.5rem"
-                          }}
+                      {(row.status === "Draft" || row.status === "Dispatched") && (
+                        <button
+                          type="button"
+                          className={tableStyles.pageButton}
+                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
+                          onClick={() => onEdit(row.id)}
                         >
-                          <button
-                            type="button"
-                            className={tableStyles.pageButton}
-                            style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
-                            onClick={() => { onView(row.id); setActiveMenuId(null); }}
-                          >
-                            <Eye size={14} /> View Details
-                          </button>
-
-                          {(row.status === "Draft" || row.status === "Dispatched") && (
-                            <button
-                              type="button"
-                              className={tableStyles.pageButton}
-                              style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
-                              onClick={() => { onEdit(row.id); setActiveMenuId(null); }}
-                            >
-                              <Edit2 size={14} /> Edit Dispatch
-                            </button>
-                          )}
-
-                          {row.status === "Draft" && (
-                            <button
-                              type="button"
-                              className={tableStyles.pageButton}
-                              style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--primary)" }}
-                              onClick={() => { onDispatch(row.id); setActiveMenuId(null); }}
-                            >
-                              <Compass size={14} /> Dispatch Trip
-                            </button>
-                          )}
-
-                          {row.status === "Dispatched" && (
-                            <button
-                              type="button"
-                              className={tableStyles.pageButton}
-                              style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--success)" }}
-                              onClick={() => { onComplete(row.id); setActiveMenuId(null); }}
-                            >
-                              <CheckCircle2 size={14} /> Complete Trip
-                            </button>
-                          )}
-
-                          {(row.status === "Draft" || row.status === "Dispatched") && (
-                            <button
-                              type="button"
-                              className={tableStyles.pageButton}
-                              style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--warning)" }}
-                              onClick={() => { onCancel(row.id); setActiveMenuId(null); }}
-                            >
-                              <AlertOctagon size={14} /> Cancel Trip
-                            </button>
-                          )}
-
-                          <button
-                            type="button"
-                            className={tableStyles.pageButton}
-                            style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
-                            onClick={() => { onDuplicate(row.id); setActiveMenuId(null); }}
-                          >
-                            <Copy size={14} /> Duplicate Trip
-                          </button>
-
-                          <button
-                            type="button"
-                            className={tableStyles.pageButton}
-                            style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--danger)" }}
-                            onClick={() => { onDelete(row.id); setActiveMenuId(null); }}
-                          >
-                            <Trash2 size={14} /> Delete (Soft)
-                          </button>
-
-                          <div style={{ height: "1px", backgroundColor: "var(--border-color)", margin: "0.25rem 0" }} />
-
-                          <button
-                            type="button"
-                            className={tableStyles.pageButton}
-                            style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
-                            onClick={() => { onView(row.id); setActiveMenuId(null); }}
-                          >
-                            <Activity size={14} /> View Timeline
-                          </button>
-                        </div>
+                          <Edit2 size={14} /> Edit Dispatch
+                        </button>
                       )}
-                    </div>
+
+                      {row.status === "Draft" && (
+                        <button
+                          type="button"
+                          className={tableStyles.pageButton}
+                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--primary)" }}
+                          onClick={() => onDispatch(row.id)}
+                        >
+                          <Compass size={14} /> Dispatch Trip
+                        </button>
+                      )}
+
+                      {row.status === "Dispatched" && (
+                        <button
+                          type="button"
+                          className={tableStyles.pageButton}
+                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--success)" }}
+                          onClick={() => onComplete(row.id)}
+                        >
+                          <CheckCircle2 size={14} /> Complete Trip
+                        </button>
+                      )}
+
+                      {(row.status === "Draft" || row.status === "Dispatched") && (
+                        <button
+                          type="button"
+                          className={tableStyles.pageButton}
+                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--warning)" }}
+                          onClick={() => onCancel(row.id)}
+                        >
+                          <AlertOctagon size={14} /> Cancel Trip
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        className={tableStyles.pageButton}
+                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
+                        onClick={() => onDuplicate(row.id)}
+                      >
+                        <Copy size={14} /> Duplicate Trip
+                      </button>
+
+                      <button
+                        type="button"
+                        className={tableStyles.pageButton}
+                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--danger)" }}
+                        onClick={() => onDelete(row.id)}
+                      >
+                        <Trash2 size={14} /> Delete (Soft)
+                      </button>
+
+                      <div style={{ height: "1px", backgroundColor: "var(--border-color)", margin: "0.25rem 0" }} />
+
+                      <button
+                        type="button"
+                        className={tableStyles.pageButton}
+                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
+                        onClick={() => onView(row.id)}
+                      >
+                        <Activity size={14} /> View Timeline
+                      </button>
+                    </ActionMenu>
                   </td>
                 </tr>
               ))}

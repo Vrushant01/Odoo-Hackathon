@@ -44,6 +44,8 @@ export const Drivers = () => {
     deleteDriver,
     suspendDriver,
     activateDriver,
+    bulkDelete,
+    bulkExport,
     refresh
   } = useDrivers();
 

@@ -117,7 +117,7 @@ export const ExpenseForm = ({ defaultValues, onSubmit, onCancel, isEdit = false 
   ];
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <form onSubmit={handleSubmit(handleFormSubmit)} style={{ display: "flex", flexDirection: "column", height: "100%", maxHeight: "calc(90vh - 160px)", overflow: "hidden" }}>
       {submitError && (
         <div style={{
           display: "flex",
@@ -129,57 +129,59 @@ export const ExpenseForm = ({ defaultValues, onSubmit, onCancel, isEdit = false 
           borderRadius: "var(--radius-sm)",
           fontSize: "0.875rem",
           fontWeight: 600,
-          border: "1px solid hsla(var(--danger-h), var(--danger-s), var(--danger-l), 0.2)"
+          border: "1px solid hsla(var(--danger-h), var(--danger-s), var(--danger-l), 0.2)",
+          marginBottom: "0.5rem"
         }}>
           <AlertCircle size={16} />
           <span>{submitError}</span>
         </div>
       )}
 
-      {/* Grid Fields */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-        gap: "1rem",
-        maxHeight: "55vh",
-        overflowY: "auto",
-        paddingRight: "0.25rem",
-        paddingBottom: "0.5rem"
-      }}>
-        <Select label="Expense Vehicle Unit" error={errors.vehicle?.message} options={vehicleOptions} disabled={loading} {...register("vehicle")} />
+      {/* Scrollable Form Body */}
+      <div style={{ flex: 1, overflowY: "auto", paddingRight: "0.5rem", paddingBottom: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "1rem",
+          paddingRight: "0.25rem",
+          paddingBottom: "0.5rem"
+        }}>
+          <Select label="Expense Vehicle Unit" error={errors.vehicle?.message} options={vehicleOptions} disabled={loading} autoFocus {...register("vehicle")} />
 
-        <Select label="Associated Trip ID" error={errors.tripId?.message} options={tripOptions} disabled={loading} {...register("tripId")} />
+          <Select label="Associated Trip ID" error={errors.tripId?.message} options={tripOptions} disabled={loading} {...register("tripId")} />
 
-        <Select label="Expense Category Type" error={errors.type?.message} options={expenseTypes} disabled={loading} {...register("type")} />
+          <Select label="Expense Category Type" error={errors.type?.message} options={expenseTypes} disabled={loading} {...register("type")} />
 
-        <Input label="Billing Vendor Name" placeholder="e.g. Shell Inc, Tolls authority" error={errors.vendor?.message} disabled={loading} {...register("vendor")} />
+          <Input label="Billing Vendor Name" placeholder="e.g. Shell Inc, Tolls authority" error={errors.vendor?.message} disabled={loading} {...register("vendor")} />
 
-        <Input label="Invoice Billing Amount ($)" type="number" step="0.01" placeholder="e.g. 88.40" error={errors.amount?.message} disabled={loading} {...register("amount")} />
+          <Input label="Invoice Billing Amount ($)" type="number" step="0.01" placeholder="e.g. 88.40" error={errors.amount?.message} disabled={loading} {...register("amount")} />
 
-        <Select label="Invoice Payment Method" error={errors.paymentMethod?.message} options={paymentMethods} disabled={loading} {...register("paymentMethod")} />
+          <Select label="Invoice Payment Method" error={errors.paymentMethod?.message} options={paymentMethods} disabled={loading} {...register("paymentMethod")} />
 
-        <Select label="Payment Invoice Status" error={errors.status?.message} options={paymentStatuses} disabled={loading} {...register("status")} />
+          <Select label="Payment Invoice Status" error={errors.status?.message} options={paymentStatuses} disabled={loading} {...register("status")} />
 
-        <Input label="Receipt / Invoice Number" placeholder="e.g. INV-EXP-1001" error={errors.invoiceNumber?.message} disabled={loading} {...register("invoiceNumber")} />
+          <Input label="Receipt / Invoice Number" placeholder="e.g. INV-EXP-1001" error={errors.invoiceNumber?.message} disabled={loading} {...register("invoiceNumber")} />
 
-        <DatePicker label="Billing Expense Date" error={errors.expenseDate?.message} disabled={loading} {...register("expenseDate")} />
+          <DatePicker label="Billing Expense Date" error={errors.expenseDate?.message} disabled={loading} {...register("expenseDate")} />
+        </div>
+
+        <Textarea
+          label="Expense Billing Remarks"
+          placeholder="Add remarks like disputed claims logs, toll card receipts verification, or audit notes..."
+          error={errors.remarks?.message}
+          disabled={loading}
+          {...register("remarks")}
+        />
       </div>
 
-      <Textarea
-        label="Expense Billing Remarks"
-        placeholder="Add remarks like disputed claims logs, toll card receipts verification, or audit notes..."
-        error={errors.remarks?.message}
-        disabled={loading}
-        {...register("remarks")}
-      />
-
+      {/* Action Buttons (Sticky Footer) */}
       <div style={{
         display: "flex",
         justifyContent: "flex-end",
         gap: "0.75rem",
         borderTop: "1px solid var(--border-color)",
         paddingTop: "1rem",
-        marginTop: "0.5rem"
+        marginTop: "auto"
       }}>
         <Button variant="secondary" onClick={onCancel} disabled={loading}>
           Cancel

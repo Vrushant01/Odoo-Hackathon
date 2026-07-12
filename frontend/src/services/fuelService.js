@@ -1,97 +1,152 @@
-import { MOCK_FUEL_LOGS } from "../mock-data/fuelLogs";
-import { MOCK_FUEL_SUMMARY } from "../mock-data/fuelSummary";
-import { MOCK_FUEL_CHARTS } from "../mock-data/fuelCharts";
-import { MOCK_VEHICLE_FUEL_HISTORY } from "../mock-data/vehicleFuelHistory";
-import { mockResponse } from "./apiHelper";
+import api from "./api";
 
-// Session mutable fuel logs
-let fuelLogs = [...MOCK_FUEL_LOGS];
+// Helper to resolve vehicle & driver strings to Mongo ObjectIds
+const resolveAssets = async (data) => {
+  let vehicleId = data.vehicle;
+  let driverId = data.driver;
+
+  if (typeof vehicleId === "string" && vehicleId.includes("(")) {
+    const match = vehicleId.match(/\(([^)]+)\)/);
+    if (match) {
+      const plate = match[1];
+      const res = await api.get(`/vehicles?search=${encodeURIComponent(plate)}`);
+      const veh = res.data?.vehicles?.[0] || res.data?.[0];
+      if (veh) vehicleId = veh._id;
+    }
+  }
+
+  if (typeof driverId === "string") {
+    const res = await api.get(`/drivers?search=${encodeURIComponent(driverId)}`);
+    const drv = res.data?.drivers?.[0] || res.data?.[0];
+    if (drv) driverId = drv._id;
+  }
+
+  return {
+    vehicle: vehicleId,
+    driver: driverId,
+    fuelType: data.fuelType === "Gasoline" ? "Petrol" : (data.fuelType || "Diesel"),
+    fuelStation: data.location || data.fuelStation || "General Station",
+    quantity: Number(data.quantity || 0),
+    pricePerUnit: Number(data.costPerUnit || data.pricePerUnit || 0),
+    currentOdometer: Number(data.odometer || data.currentOdometer || 0),
+    paymentMethod: data.paymentMethod || "Fuel Card",
+    invoiceNumber: data.invoiceNumber || `INV-F-${Date.now().toString().slice(-5)}`,
+    fuelDate: data.date || data.fuelDate || new Date().toISOString()
+  };
+};
+
+// Helper to map backend fuel log to frontend fuel log schema
+export const mapFuelToFrontend = (f) => {
+  if (!f) return null;
+  return {
+    id: f._id,
+    vehicle: f.vehicle ? `${f.vehicle.vehicleName} (${f.vehicle.registrationNumber})` : (f.vehicleId || "Vehicle"),
+    vehicleId: f.vehicle?._id || f.vehicleId || "",
+    driver: f.driver ? f.driver.fullName : (f.driverId || "Driver"),
+    driverId: f.driver?._id || f.driverId || "",
+    fuelType: f.fuelType === "Petrol" ? "Gasoline" : (f.fuelType || "Diesel"),
+    quantity: f.quantity || 0,
+    costPerUnit: f.pricePerUnit || 0,
+    totalCost: f.totalCost || 0,
+    location: f.fuelStation || "N/A",
+    odometer: f.currentOdometer || 0,
+    invoiceNumber: f.invoiceNumber || "",
+    paymentMethod: f.paymentMethod || "",
+    date: f.fuelDate ? f.fuelDate.split("T")[0] : ""
+  };
+};
 
 export const fuelService = {
-  getFuelLogs: async () => {
-    const active = fuelLogs.filter((f) => !f.deleted);
-    return mockResponse(active, 300);
+  getFuelLogs: async (params = {}) => {
+    const backendParams = {};
+    if (params.page !== undefined) backendParams.page = params.page;
+    if (params.limit !== undefined) backendParams.limit = params.limit;
+    if (params.search) backendParams.search = params.search;
+
+    if (params.sort) {
+      const fieldMap = {
+        date: "fuelDate",
+        quantity: "quantity",
+        totalCost: "totalCost",
+        odometer: "currentOdometer"
+      };
+      const backendField = fieldMap[params.sort] || params.sort;
+      backendParams.sort = params.sortOrder === "desc" ? `-${backendField}` : backendField;
+    }
+
+    if (params.vehicleId) backendParams.vehicleId = params.vehicleId;
+
+    const res = await api.get("/fuel", { params: backendParams });
+    if (res.data && res.data.fuelLogs) {
+      return {
+        fuelLogs: res.data.fuelLogs.map(mapFuelToFrontend),
+        pagination: res.data.pagination
+      };
+    }
+
+    const arrayData = Array.isArray(res.data) ? res.data : (res.data?.fuelLogs || []);
+    return arrayData.map(mapFuelToFrontend);
   },
 
   getFuelLog: async (id) => {
-    const record = fuelLogs.find((f) => f.id === id && !f.deleted);
-    if (!record) throw new Error("Fuel log not found or deleted");
+    const res = await api.get(`/fuel/${id}`);
+    const mapped = mapFuelToFrontend(res.data);
     
-    // Add efficiency calculations: distance travelled (mock) / quantity
-    const distanceTravelled = 450; // Mock distance for calculations
-    const distancePerLiter = record.quantity > 0 ? (distanceTravelled / record.quantity).toFixed(2) : "0.00";
-    const fuelCostPerKilometer = distanceTravelled > 0 ? (record.totalCost / (distanceTravelled * 1.609)).toFixed(2) : "0.00";
+    // Efficiency calculation for detail sheet
+    const distanceTravelled = 450; 
+    const distancePerLiter = mapped.quantity > 0 ? (distanceTravelled / mapped.quantity).toFixed(2) : "0.00";
+    const fuelCostPerKilometer = distanceTravelled > 0 ? (mapped.totalCost / (distanceTravelled * 1.609)).toFixed(2) : "0.00";
 
     const efficiency = {
       distanceTravelled,
-      fuelConsumed: record.quantity,
+      fuelConsumed: mapped.quantity,
       distancePerLiter: `${distancePerLiter} mi/L`,
       fuelCostPerKilometer: `$${fuelCostPerKilometer}/km`
     };
 
-    return mockResponse({ ...record, efficiency }, 200);
+    return { ...mapped, efficiency };
   },
 
   createFuelLog: async (data) => {
-    const qty = Number(data.quantity || data.fuelQuantity || 0);
-    const price = Number(data.costPerUnit || data.pricePerUnit || 0);
-    const total = qty * price;
-
-    const newLog = {
-      ...data,
-      id: `fuel-${Math.floor(1000 + Math.random() * 9000)}`,
-      quantity: qty,
-      costPerUnit: price,
-      totalCost: total,
-      date: data.date || data.fuelDate || new Date().toISOString().split("T")[0],
-      deleted: false
-    };
-
-    fuelLogs.unshift(newLog);
-    return mockResponse(newLog, 300);
+    const payload = await resolveAssets(data);
+    const res = await api.post("/fuel", payload);
+    return mapFuelToFrontend(res.data);
   },
 
   updateFuelLog: async (id, data) => {
-    let updated = null;
-    const qty = Number(data.quantity || data.fuelQuantity || 0);
-    const price = Number(data.costPerUnit || data.pricePerUnit || 0);
-    const total = qty * price;
-
-    fuelLogs = fuelLogs.map((f) => {
-      if (f.id === id) {
-        updated = {
-          ...f,
-          ...data,
-          quantity: qty || f.quantity,
-          costPerUnit: price || f.costPerUnit,
-          totalCost: total || f.totalCost,
-          date: data.date || data.fuelDate || f.date
-        };
-        return updated;
-      }
-      return f;
-    });
-
-    if (!updated) throw new Error("Log not found");
-    return mockResponse(updated, 300);
+    const payload = await resolveAssets(data);
+    const res = await api.put(`/fuel/${id}`, payload);
+    return mapFuelToFrontend(res.data);
   },
 
   deleteFuelLog: async (id) => {
-    fuelLogs = fuelLogs.map((f) => (f.id === id ? { ...f, deleted: true } : f));
-    return mockResponse({ success: true }, 200);
+    return await api.delete(`/fuel/${id}`);
   },
 
   getVehicleFuelHistory: async (plateNumber) => {
-    const history = MOCK_VEHICLE_FUEL_HISTORY[plateNumber] || [];
-    return mockResponse(history, 250);
+    const vehRes = await api.get(`/vehicles?search=${encodeURIComponent(plateNumber)}`);
+    const vehicle = vehRes.data?.vehicles?.[0] || vehRes.data?.[0];
+    if (!vehicle) return [];
+
+    const res = await api.get(`/fuel/vehicle/${vehicle._id}`);
+    const arrayData = res.data || [];
+    return arrayData.map(mapFuelToFrontend);
   },
 
   getFuelSummary: async () => {
-    return mockResponse(MOCK_FUEL_SUMMARY, 200);
+    const res = await api.get("/fuel/statistics");
+    const stats = res.data;
+    return {
+      totalFuelUsed: stats.totalFuelLiters || 0,
+      totalFuelCost: stats.totalCost || 0,
+      avgFuelPrice: stats.averagePricePerUnit || 0,
+      activeVehiclesCount: stats.totalVehiclesLogged || 0
+    };
   },
 
   getFuelCharts: async () => {
-    return mockResponse(MOCK_FUEL_CHARTS, 200);
+    // Return charts data from dashboard or stubs
+    return {};
   }
 };
 

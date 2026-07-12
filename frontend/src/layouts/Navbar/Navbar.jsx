@@ -4,7 +4,7 @@ import { Sun, Moon, Bell, LogOut, Settings, User } from "lucide-react";
 import useAuth from "../../hooks/useAuth";
 import useTheme from "../../hooks/useTheme";
 import SearchBar from "../../components/SearchBar/SearchBar";
-import { MOCK_NOTIFICATIONS } from "../../mock-data/notifications";
+import dashboardService from "../../services/dashboardService";
 import styles from "./Navbar.module.css";
 
 export const Navbar = () => {
@@ -15,10 +15,37 @@ export const Navbar = () => {
   const [searchVal, setSearchVal] = useState("");
   const [showNotif, setShowNotif] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState([]);
 
   const notifRef = useRef(null);
   const profileRef = useRef(null);
+
+  // Load notifications from backend
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        const data = await dashboardService.getNotifications();
+        setNotifications(
+          data.map((n) => ({
+            id: n.id,
+            title: n.title,
+            message: n.message,
+            read: n.isRead,
+            timestamp: n.timestamp || new Date().toISOString()
+          }))
+        );
+      } catch (err) {
+        console.error("Failed to load notifications:", err);
+      }
+    };
+
+    if (user) {
+      loadNotifications();
+      // Poll every 30 seconds for live updates
+      const interval = setInterval(loadNotifications, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -39,17 +66,33 @@ export const Navbar = () => {
     navigate("/login");
   };
 
-  const handleNotificationClick = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+  const handleNotificationClick = async (id) => {
+    try {
+      const token = localStorage.getItem("transitops_token") || sessionStorage.getItem("transitops_token");
+      await fetch(`${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1"}/notifications/${id}/read`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      );
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+    }
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const formatTime = (isoString) => {
-    const date = new Date(isoString);
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    try {
+      const date = new Date(isoString);
+      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    } catch (e) {
+      return "00:00";
+    }
   };
 
   return (

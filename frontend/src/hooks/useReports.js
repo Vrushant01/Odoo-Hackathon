@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import reportService from "../services/reportService";
+import { useGlobalFilters } from "../contexts/FilterContext";
 
 const INITIAL_FILTERS = {
   dateRange: { start: "", end: "" },
@@ -19,6 +20,9 @@ export const useReports = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+
+  // Global filters from context
+  const { globalFilters } = useGlobalFilters();
 
   // Report data sections
   const [fleetReport, setFleetReport] = useState(null);
@@ -44,6 +48,16 @@ export const useReports = () => {
   const loadAllReports = useCallback(async () => {
     setIsLoading(true);
     setError(null);
+    // Build filter params to pass to each report service call
+    const filterParams = {
+      vehicleType: globalFilters.vehicleType,
+      status: globalFilters.vehicleStatus,
+      region: globalFilters.region,
+      driver: globalFilters.driver,
+      startDate: globalFilters.startDate,
+      endDate: globalFilters.endDate,
+      tripStatus: globalFilters.tripStatus
+    };
     try {
       const [
         fleet,
@@ -58,15 +72,15 @@ export const useReports = () => {
         history,
         scheduled
       ] = await Promise.all([
-        reportService.getFleetReport(),
-        reportService.getDriverReport(),
-        reportService.getTripReport(),
-        reportService.getMaintenanceReport(),
-        reportService.getFuelReport(),
-        reportService.getExpenseReport(),
-        reportService.getProfitabilityReport(),
-        reportService.getCharts(),
-        reportService.getInsights(),
+        reportService.getFleetReport(filterParams),
+        reportService.getDriverReport(filterParams),
+        reportService.getTripReport(filterParams),
+        reportService.getMaintenanceReport(filterParams),
+        reportService.getFuelReport(filterParams),
+        reportService.getExpenseReport(filterParams),
+        reportService.getProfitabilityReport(filterParams),
+        reportService.getCharts(filterParams),
+        reportService.getInsights(filterParams),
         reportService.getReportHistory(),
         reportService.getScheduledReports()
       ]);
@@ -89,7 +103,16 @@ export const useReports = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    globalFilters.vehicleType,
+    globalFilters.vehicleStatus,
+    globalFilters.region,
+    globalFilters.driver,
+    globalFilters.startDate,
+    globalFilters.endDate,
+    globalFilters.tripStatus
+  ]);
 
   useEffect(() => {
     loadAllReports();

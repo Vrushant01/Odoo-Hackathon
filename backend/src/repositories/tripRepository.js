@@ -93,6 +93,8 @@ class TripRepository {
           dispatchedTrips: { $sum: { $cond: [{ $eq: ['$status', 'Dispatched'] }, 1, 0] } },
           completedTrips: { $sum: { $cond: [{ $eq: ['$status', 'Completed'] }, 1, 0] } },
           cancelledTrips: { $sum: { $cond: [{ $eq: ['$status', 'Cancelled'] }, 1, 0] } },
+          totalDistance: { $sum: { $cond: [{ $eq: ['$status', 'Completed'] }, '$actualDistance', 0] } },
+          totalCargo: { $sum: { $cond: [{ $ne: ['$status', 'Cancelled'] }, '$cargoWeight', 0] } },
           averageDistance: {
             $avg: { $cond: [{ $eq: ['$status', 'Completed'] }, '$actualDistance', null] }
           },
@@ -120,6 +122,8 @@ class TripRepository {
         dispatchedTrips: 0,
         completedTrips: 0,
         cancelledTrips: 0,
+        totalDistance: 0,
+        totalCargo: 0,
         averageDistance: 0,
         averageDuration: 0,
         averageCargo: 0,
@@ -136,6 +140,8 @@ class TripRepository {
     stats.completionRate = total > 0 ? parseFloat(((stats.completedTrips / total) * 100).toFixed(2)) : 0;
     stats.cancellationRate = total > 0 ? parseFloat(((stats.cancelledTrips / total) * 100).toFixed(2)) : 0;
 
+    stats.totalDistance = stats.totalDistance ? parseFloat(stats.totalDistance.toFixed(2)) : 0;
+    stats.totalCargo = stats.totalCargo ? parseFloat(stats.totalCargo.toFixed(2)) : 0;
     stats.averageDistance = stats.averageDistance ? parseFloat(stats.averageDistance.toFixed(2)) : 0;
     stats.averageDuration = stats.averageDuration ? parseFloat(stats.averageDuration.toFixed(2)) : 0;
     stats.averageCargo = stats.averageCargo ? parseFloat(stats.averageCargo.toFixed(2)) : 0;

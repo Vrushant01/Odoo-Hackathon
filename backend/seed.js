@@ -1,4 +1,10 @@
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+const path = require('path');
+
+// Load environment variables
+dotenv.config({ path: path.join(__dirname, '.env') });
+
 const User = require('./src/models/User');
 const Vehicle = require('./src/models/Vehicle');
 const Driver = require('./src/models/Driver');
@@ -8,7 +14,7 @@ const FuelLog = require('./src/models/FuelLog');
 const Expense = require('./src/models/Expense');
 const Settings = require('./src/models/Settings');
 
-const MONGODB_URI = 'mongodb://localhost:27017/transitops';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/transitops';
 
 async function seed() {
   console.log('--- Connecting to Development Database ---');
@@ -31,26 +37,50 @@ async function seed() {
 
   // 1. Seed Users
   console.log('Seeding users...');
-  const manager = new User({
-    fullName: 'David FleetManager',
-    email: 'manager@transitops.com',
-    password: 'password123',
-    role: 'Fleet Manager',
-    phoneNumber: '+15550111',
-    status: 'Active'
-  });
-  await manager.save();
+  const users = [
+    {
+      fullName: 'David FleetManager',
+      email: 'manager@transitops.com',
+      password: 'password',
+      role: 'Fleet Manager',
+      phoneNumber: '+15550111',
+      status: 'Active'
+    },
+    {
+      fullName: 'Sarah Dispatcher',
+      email: 'dispatcher@transitops.com',
+      password: 'password',
+      role: 'Dispatcher',
+      phoneNumber: '+15550222',
+      status: 'Active'
+    },
+    {
+      fullName: 'John SafetyOfficer',
+      email: 'safety@transitops.com',
+      password: 'password',
+      role: 'Safety Officer',
+      phoneNumber: '+15550333',
+      status: 'Active'
+    },
+    {
+      fullName: 'Alex FinancialAnalyst',
+      email: 'finance@transitops.com',
+      password: 'password',
+      role: 'Financial Analyst',
+      phoneNumber: '+15550444',
+      status: 'Active'
+    }
+  ];
 
-  const dispatcher = new User({
-    fullName: 'Sarah Dispatcher',
-    email: 'dispatcher@transitops.com',
-    password: 'password123',
-    role: 'Dispatcher',
-    phoneNumber: '+15550222',
-    status: 'Active'
-  });
-  await dispatcher.save();
-  console.log('✓ Seeded Users (manager@transitops.com / dispatcher@transitops.com)');
+  const seededUsers = [];
+  for (const u of users) {
+    const user = new User(u);
+    await user.save();
+    seededUsers.push(user);
+  }
+  console.log('✓ Seeded Users (manager, dispatcher, safety, finance with password: password)');
+
+  const manager = seededUsers[0];
 
   // 2. Seed Vehicles
   console.log('Seeding vehicles...');
@@ -98,7 +128,7 @@ async function seed() {
     maximumLoadCapacity: 6000,
     currentOdometer: 62000,
     acquisitionCost: 52000,
-    purchaseDate: new Date('2025-01-20'),
+    purchaseDate: new Date('2024-06-20'),
     region: 'East',
     status: 'In Shop',
     createdBy: manager._id
@@ -109,105 +139,98 @@ async function seed() {
   // 3. Seed Drivers
   console.log('Seeding drivers...');
   const d1 = new Driver({
-    fullName: 'Robert Miller',
-    email: 'robert@transitops.com',
-    phoneNumber: '+15551212',
-    licenseNumber: 'CDL-R-8812',
+    fullName: 'David Miller',
+    email: 'david.miller@transitops.com',
+    phoneNumber: '+15551122',
+    licenseNumber: 'DL-CA63524',
     licenseCategory: 'Commercial',
-    licenseExpiryDate: new Date('2029-12-31'),
-    safetyScore: 98.2,
+    licenseExpiryDate: new Date('2026-07-28'),
+    dateOfBirth: new Date('1985-04-12'),
+    joiningDate: new Date('2020-01-15'),
+    experience: 8,
     status: 'Available',
-    region: 'North',
+    assignedVehicle: v1._id,
+    safetyScore: 92,
     createdBy: manager._id
   });
   await d1.save();
 
   const d2 = new Driver({
-    fullName: 'Michael Jones',
-    email: 'michael@transitops.com',
-    phoneNumber: '+15551313',
-    licenseNumber: 'CDL-M-4423',
+    fullName: 'Marcus Vance',
+    email: 'marcus.vance@transitops.com',
+    phoneNumber: '+15553344',
+    licenseNumber: 'DL-TX48271',
     licenseCategory: 'Commercial',
-    licenseExpiryDate: new Date('2028-06-30'),
-    safetyScore: 94.5,
+    licenseExpiryDate: new Date('2026-08-15'),
+    dateOfBirth: new Date('1990-09-22'),
+    joiningDate: new Date('2021-06-10'),
+    experience: 5,
     status: 'On Trip',
-    region: 'South',
+    assignedVehicle: v2._id,
+    safetyScore: 88,
     createdBy: manager._id
   });
   await d2.save();
-
-  const d3 = new Driver({
-    fullName: 'William Brown',
-    email: 'william@transitops.com',
-    phoneNumber: '+15551414',
-    licenseNumber: 'CDL-W-2211',
-    licenseCategory: 'Commercial',
-    licenseExpiryDate: new Date('2026-05-15'),
-    safetyScore: 88.0,
-    status: 'Suspended',
-    region: 'East',
-    createdBy: manager._id
-  });
-  await d3.save();
   console.log('✓ Seeded Drivers');
 
   // 4. Seed Trips
   console.log('Seeding trips...');
-  // Completed Trip
   const t1 = new Trip({
-    tripNumber: 'TRIP-2026-0001',
-    vehicle: v1._id,
-    driver: d1._id,
+    tripNumber: 'TRIP-20260712-0001',
+    vehicle: v2._id,
+    driver: d2._id,
     source: 'Houston, TX',
-    destination: 'Austin, TX',
-    cargoDescription: 'Industrial Valves',
-    cargoWeight: 8500,
-    plannedDistance: 160,
-    actualDistance: 160,
-    status: 'Completed',
-    dispatchDate: new Date('2026-07-01T08:00:00Z'),
-    completedDate: new Date('2026-07-01T11:30:00Z'),
-    fuelConsumed: 45,
-    fuelCost: 155,
-    tollCost: 12,
-    otherExpenses: 8,
-    totalOperationalCost: 175,
+    destination: 'Dallas, TX',
+    cargoDescription: 'Heavy Steel Structural Coils',
+    cargoWeight: 42000,
+    plannedDistance: 240,
+    actualDistance: 0,
+    status: 'Dispatched',
+    priority: 'High',
+    dispatchDate: new Date('2026-07-12T08:00:00Z'),
     createdBy: manager._id
   });
   await t1.save();
 
-  // Active Dispatched Trip
   const t2 = new Trip({
-    tripNumber: 'TRIP-2026-0002',
-    vehicle: v2._id,
-    driver: d2._id,
-    source: 'Dallas, TX',
-    destination: 'Chicago, IL',
-    cargoDescription: 'Automotive Parts',
-    cargoWeight: 22000,
-    plannedDistance: 920,
-    status: 'Dispatched',
-    dispatchDate: new Date('2026-07-11T06:00:00Z'),
+    tripNumber: 'TRIP-20260711-0002',
+    vehicle: v1._id,
+    driver: d1._id,
+    source: 'Miami, FL',
+    destination: 'Orlando, FL',
+    cargoDescription: 'Medical Diagnostics Vaccines',
+    cargoWeight: 1200,
+    plannedDistance: 235,
+    actualDistance: 238,
+    actualDuration: 4.2,
+    fuelConsumed: 25,
+    fuelCost: 110,
+    tollCost: 15,
+    otherExpenses: 20,
+    status: 'Completed',
+    priority: 'High',
+    dispatchDate: new Date('2026-07-11T09:00:00Z'),
+    completedDate: new Date('2026-07-11T13:12:00Z'),
     createdBy: manager._id
   });
   await t2.save();
   console.log('✓ Seeded Trips');
 
   // 5. Seed Maintenance
-  console.log('Seeding maintenance...');
+  console.log('Seeding maintenance records...');
   const m1 = new Maintenance({
-    maintenanceNumber: 'MAIN-2026-0001',
+    maintenanceNumber: 'WO-20260712-0001',
     vehicle: v3._id,
-    maintenanceType: 'Engine Overhaul',
-    category: 'Engine',
-    priority: 'Critical',
+    maintenanceType: 'Routine Service',
+    category: 'Preventative',
+    priority: 'Medium',
+    scheduledDate: new Date('2026-07-12'),
+    startedDate: new Date('2026-07-12'),
+    mechanic: 'Jack Mechanic',
+    workshop: 'East Fleet Depot Shop',
+    description: '100k miles engine checkup and spark plug replacement.',
     status: 'In Progress',
-    workshop: 'Metro Truck Service',
-    mechanic: 'James Smith',
-    description: 'Repairing piston rings and gasket replacement.',
-    scheduledDate: new Date('2026-07-10T09:00:00Z'),
-    startedDate: new Date('2026-07-10T10:00:00Z'),
-    estimatedCost: 1500,
+    estimatedCost: 450,
     createdBy: manager._id
   });
   await m1.save();
@@ -216,19 +239,18 @@ async function seed() {
   // 6. Seed Fuel Logs
   console.log('Seeding fuel logs...');
   const f1 = new FuelLog({
-    fuelLogNumber: 'FUEL-2026-0001',
+    fuelLogNumber: 'FUEL-20260710-0001',
     vehicle: v1._id,
     driver: d1._id,
-    trip: t1._id,
     fuelType: 'Diesel',
-    fuelStation: 'Love\'s Travel Stop #334',
-    quantity: 45,
-    pricePerUnit: 3.44,
-    totalCost: 154.8,
-    currentOdometer: 45160,
-    invoiceNumber: 'INV-F-99441',
+    quantity: 50,
+    pricePerUnit: 3.5,
+    totalCost: 175,
+    currentOdometer: 45200,
+    fuelStation: 'Shell Highway 95',
+    invoiceNumber: 'INV-F-887712',
     paymentMethod: 'Fuel Card',
-    fuelDate: new Date('2026-07-01T08:15:00Z'),
+    fuelDate: new Date('2026-07-10'),
     createdBy: manager._id
   });
   await f1.save();
@@ -237,50 +259,39 @@ async function seed() {
   // 7. Seed Expenses
   console.log('Seeding expenses...');
   const e1 = new Expense({
-    expenseNumber: 'EXP-2026-0001',
+    expenseNumber: 'EXP-20260711-0001',
     vehicle: v1._id,
-    trip: t1._id,
+    trip: t2._id,
     expenseType: 'Toll',
-    vendor: 'TxTag Authority',
-    amount: 12.00,
-    paymentMethod: 'EZ-Pass',
-    invoiceNumber: 'T-992211',
+    amount: 15,
+    paymentMethod: 'Corporate Card',
+    invoiceNumber: 'INV-T-38190',
     paymentStatus: 'Paid',
-    expenseDate: new Date('2026-07-01T09:30:00Z'),
+    expenseDate: new Date('2026-07-11'),
     createdBy: manager._id
   });
   await e1.save();
   console.log('✓ Seeded Expenses');
 
-  // 8. Seed Default Settings
-  console.log('Seeding default settings...');
+  // 8. Seed Settings
+  console.log('Seeding system settings...');
   const settings = new Settings({
-    companyName: 'TransitOps Logistics Ltd',
-    defaultRegion: 'North',
-    defaultCurrency: 'USD',
-    fuelUnit: 'Liters',
-    distanceUnit: 'Kilometers',
-    timezone: 'UTC',
-    emailSettings: {
-      host: 'smtp.mailtrap.io',
-      port: 2525,
-      secure: false,
-      senderEmail: 'no-reply@transitops.com'
-    }
+    systemName: 'TransitOps Platform',
+    maintenanceAlertOdometerInterval: 5000,
+    fuelAlertThresholdMpg: 6.0,
+    regionSelectorList: ['North', 'South', 'East', 'West'],
+    companyAddress: '100 Transit Way, Logistics City, TX 77001',
+    supportContactEmail: 'support@transitops.com',
+    createdBy: manager._id
   });
   await settings.save();
   console.log('✓ Seeded Settings');
 
-  console.log('\n--- Database Seeding Completed Successfully ---');
+  console.log('\nDatabase seeding finished successfully!');
+  await mongoose.disconnect();
 }
 
-seed()
-  .then(() => {
-    mongoose.connection.close();
-    process.exit(0);
-  })
-  .catch((err) => {
-    console.error('Seeding Failed:', err);
-    mongoose.connection.close();
-    process.exit(1);
-  });
+seed().catch((err) => {
+  console.error('Error seeding database:', err);
+  process.exit(1);
+});

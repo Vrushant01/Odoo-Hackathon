@@ -1,140 +1,209 @@
-import { MOCK_TRIPS } from "../mock-data/trips";
-import { MOCK_TRIP_TIMELINE } from "../mock-data/tripTimeline";
-import { MOCK_TRIP_FUEL } from "../mock-data/tripFuel";
-import { MOCK_TRIP_EXPENSES } from "../mock-data/tripExpenses";
-import { MOCK_TRIP_STATISTICS } from "../mock-data/tripStatistics";
-import { mockResponse } from "./apiHelper";
+import api from "./api";
 
-// Session mutable trip array
-let trips = [...MOCK_TRIPS];
+// Helper to map backend trip to frontend trip schema
+export const mapTripToFrontend = (t) => {
+  if (!t) return null;
+  
+  const getVehicleString = () => {
+    if (t.vehicle && typeof t.vehicle === "object") {
+      return `${t.vehicle.vehicleName} (${t.vehicle.registrationNumber})`;
+    }
+    return t.vehicle || "Unassigned Vehicle";
+  };
+
+  const getDriverString = () => {
+    if (t.driver && typeof t.driver === "object") {
+      return t.driver.fullName;
+    }
+    return t.driver || "Unassigned Driver";
+  };
+
+  return {
+    id: t._id,
+    tripNumber: t.tripNumber,
+    vehicle: getVehicleString(),
+    vehicleId: t.vehicle?._id || t.vehicle || "",
+    driver: getDriverString(),
+    driverId: t.driver?._id || t.driver || "",
+    source: t.source,
+    destination: t.destination,
+    cargoDescription: t.cargoDescription,
+    cargoWeight: t.cargoWeight || 0,
+    vehicleCapacity: t.vehicle?.maximumLoadCapacity || 0,
+    plannedDistance: t.plannedDistance || 0,
+    expectedDuration: t.actualDuration || 5, // fallback
+    notes: t.notes || "",
+    priority: t.priority || "Medium",
+    dispatchDate: t.dispatchDate ? t.dispatchDate.split("T")[0] : "",
+    expectedCompletion: t.completedDate ? t.completedDate.split("T")[0] : "",
+    status: t.status || "Draft",
+    createdDate: t.createdAt ? t.createdAt.split("T")[0] : "",
+    cancelReason: t.cancelReason || "",
+    cancelNotes: t.remarks || ""
+  };
+};
+
+// Helper to resolve vehicle & driver strings to Mongo ObjectIds
+const resolveAssets = async (data) => {
+  let vehicleId = data.vehicle;
+  let driverId = data.driver;
+
+  if (typeof vehicleId === "string" && vehicleId.includes("(")) {
+    const match = vehicleId.match(/\(([^)]+)\)/);
+    if (match) {
+      const plate = match[1];
+      const res = await api.get(`/vehicles?search=${encodeURIComponent(plate)}`);
+      const veh = res.data?.vehicles?.[0] || res.data?.[0];
+      if (veh) vehicleId = veh._id;
+    }
+  }
+
+  if (typeof driverId === "string") {
+    const res = await api.get(`/drivers?search=${encodeURIComponent(driverId)}`);
+    const drv = res.data?.drivers?.[0] || res.data?.[0];
+    if (drv) driverId = drv._id;
+  }
+
+  return {
+    ...data,
+    vehicle: vehicleId,
+    driver: driverId,
+    dispatchDate: data.dispatchDate || new Date().toISOString()
+  };
+};
 
 export const tripService = {
-  getTrips: async () => {
-    // Exclude soft-deleted trips
-    const activeTrips = trips.filter((t) => !t.deleted);
-    return mockResponse(activeTrips, 350);
+  getTrips: async (params = {}) => {
+    const backendParams = {};
+    if (params.page !== undefined) backendParams.page = params.page;
+    if (params.limit !== undefined) backendParams.limit = params.limit;
+    if (params.search) backendParams.search = params.search;
+
+    if (params.sort) {
+      const fieldMap = {
+        tripNumber: "tripNumber",
+        source: "source",
+        destination: "destination",
+        priority: "priority",
+        status: "status"
+      };
+      const backendField = fieldMap[params.sort] || params.sort;
+      backendParams.sort = params.sortOrder === "desc" ? `-${backendField}` : backendField;
+    }
+
+    if (params.status) backendParams.status = params.status;
+    if (params.priority) backendParams.priority = params.priority;
+
+    const res = await api.get("/trips", { params: backendParams });
+    if (res.data && res.data.trips) {
+      return {
+        trips: res.data.trips.map(mapTripToFrontend),
+        pagination: res.data.pagination
+      };
+    }
+
+    const arrayData = Array.isArray(res.data) ? res.data : (res.data?.trips || []);
+    return arrayData.map(mapTripToFrontend);
   },
 
   getTrip: async (id) => {
-    const trip = trips.find((t) => t.id === id && !t.deleted);
-    if (!trip) throw new Error("Trip record not found or deleted");
+    const res = await api.get(`/trips/${id}`);
+    const details = res.data;
+    const mapped = mapTripToFrontend(details.trip);
     
-    // Find stats or fallback
-    const stats = MOCK_TRIP_STATISTICS[id] || { distance: 0, cargoDelivered: 0, averageSpeed: "0 mph", duration: "0 hrs", completionRate: 0 };
-    
-    return mockResponse({ ...trip, stats }, 200);
+    // Add stats payload for frontend spec page
+    const distance = details.trip.actualDistance || details.trip.plannedDistance || 0;
+    const stats = {
+      distance,
+      cargoDelivered: details.trip.status === "Completed" ? details.trip.cargoWeight : 0,
+      averageSpeed: "55 mph",
+      duration: `${details.trip.actualDuration || 5} hrs`,
+      completionRate: details.trip.status === "Completed" ? 100 : 0
+    };
+
+    return { ...mapped, stats };
   },
 
   createTrip: async (data) => {
-    const newTrip = {
-      ...data,
-      id: `TR-${Math.floor(1000 + Math.random() * 9000)}`, // Generate random 4-digit code
-      cargoWeight: data.cargoWeight ? Number(data.cargoWeight) : 0,
-      plannedDistance: data.plannedDistance ? Number(data.plannedDistance) : 0,
-      expectedDuration: data.expectedDuration ? Number(data.expectedDuration) : 0,
-      status: "Draft",
-      createdDate: new Date().toISOString().split("T")[0],
-      deleted: false
-    };
-
-    trips.unshift(newTrip);
-    return mockResponse(newTrip, 300);
+    const payload = await resolveAssets(data);
+    const res = await api.post("/trips", payload);
+    return mapTripToFrontend(res.data);
   },
 
   updateTrip: async (id, data) => {
-    let updatedTrip = null;
-    trips = trips.map((t) => {
-      if (t.id === id) {
-        if (t.status === "Completed" || t.status === "Cancelled") {
-          throw new Error("Cannot edit completed or cancelled trips.");
-        }
-        updatedTrip = { ...t, ...data };
-        return updatedTrip;
-      }
-      return t;
-    });
-
-    if (!updatedTrip) throw new Error("Trip not found");
-    return mockResponse(updatedTrip, 300);
+    const payload = await resolveAssets(data);
+    const res = await api.put(`/trips/${id}`, payload);
+    return mapTripToFrontend(res.data);
   },
 
   dispatchTrip: async (id, details) => {
-    let dispatched = null;
-    trips = trips.map((t) => {
-      if (t.id === id) {
-        dispatched = {
-          ...t,
-          status: "Dispatched",
-          dispatchDate: details.dispatchDate || new Date().toISOString().split("T")[0],
-          notes: details.notes || t.notes
-        };
-        return dispatched;
-      }
-      return t;
+    const res = await api.patch(`/trips/${id}/dispatch`, {
+      dispatchDate: details.dispatchDate || new Date().toISOString(),
+      notes: details.notes
     });
-
-    if (!dispatched) throw new Error("Trip not found");
-    return mockResponse(dispatched, 250);
+    return mapTripToFrontend(res.data);
   },
 
   completeTrip: async (id, details) => {
-    let completed = null;
-    trips = trips.map((t) => {
-      if (t.id === id) {
-        completed = {
-          ...t,
-          status: "Completed",
-          completionDate: details.completionDate || new Date().toISOString().split("T")[0],
-          notes: `${t.notes || ""}\nCompletion Notes: ${details.notes || ""}\nDelay Reason: ${details.delayReason || "None"}`,
-          actualDistance: details.actualDistance ? Number(details.actualDistance) : t.plannedDistance,
-          finalOdometer: Number(details.finalOdometer)
-        };
-        return completed;
-      }
-      return t;
+    const res = await api.patch(`/trips/${id}/complete`, {
+      finalOdometer: Number(details.finalOdometer),
+      fuelConsumed: Number(details.fuelConsumed),
+      actualDistance: Number(details.actualDistance),
+      completionDate: details.completionDate || new Date().toISOString(),
+      fuelCost: Number(details.fuelCost || 0),
+      tollCost: Number(details.tollCost || 0),
+      otherExpenses: Number(details.otherExpenses || 0),
+      notes: details.notes
     });
-
-    if (!completed) throw new Error("Trip not found");
-    return mockResponse(completed, 300);
+    return mapTripToFrontend(res.data);
   },
 
   cancelTrip: async (id, details) => {
-    let cancelled = null;
-    trips = trips.map((t) => {
-      if (t.id === id) {
-        cancelled = {
-          ...t,
-          status: "Cancelled",
-          cancelReason: details.reason,
-          cancelNotes: details.notes
-        };
-        return cancelled;
-      }
-      return t;
+    const res = await api.patch(`/trips/${id}/cancel`, {
+      reason: details.reason,
+      notes: details.notes
     });
-
-    if (!cancelled) throw new Error("Trip not found");
-    return mockResponse(cancelled, 250);
+    return mapTripToFrontend(res.data);
   },
 
   deleteTrip: async (id) => {
-    trips = trips.map((t) => (t.id === id ? { ...t, deleted: true } : t));
-    return mockResponse({ success: true }, 200);
+    return await api.delete(`/trips/${id}`);
   },
 
   getTripTimeline: async (id) => {
-    const timeline = MOCK_TRIP_TIMELINE[id] || [];
-    return mockResponse(timeline, 200);
+    const res = await api.get(`/trips/${id}/timeline`);
+    return (res.data || []).map((log) => ({
+      id: log._id,
+      event: log.eventType,
+      description: log.description,
+      date: log.createdAt ? log.createdAt.split("T")[0] : "N/A",
+      user: log.createdBy?.fullName || "System"
+    }));
   },
 
   getTripExpenses: async (id) => {
-    const expenses = MOCK_TRIP_EXPENSES[id] || { fuel: 0, maintenance: 0, tolls: 0, other: 0, totalCost: 0 };
-    return mockResponse(expenses, 200);
+    const res = await api.get(`/trips/${id}`);
+    const trip = res.data.trip;
+    // Calculate expense from completed metrics
+    return {
+      fuel: trip.fuelCost || 0,
+      maintenance: trip.maintenanceCost || 0,
+      tolls: trip.tollCost || 0,
+      other: trip.otherExpenses || 0,
+      totalCost: (trip.fuelCost || 0) + (trip.maintenanceCost || 0) + (trip.tollCost || 0) + (trip.otherExpenses || 0)
+    };
   },
 
   getTripFuel: async (id) => {
-    const fuel = MOCK_TRIP_FUEL[id] || { fuelConsumed: 0, fuelCost: 0, fuelEfficiency: "N/A" };
-    return mockResponse(fuel, 200);
+    const res = await api.get(`/trips/${id}`);
+    const trip = res.data.trip;
+    const distance = trip.actualDistance || trip.plannedDistance || 0;
+    const efficiency = trip.fuelConsumed > 0 ? (distance / trip.fuelConsumed).toFixed(1) : "0.0";
+    return {
+      fuelConsumed: trip.fuelConsumed || 0,
+      fuelCost: trip.fuelCost || 0,
+      fuelEfficiency: `${efficiency} mpg`
+    };
   }
 };
 

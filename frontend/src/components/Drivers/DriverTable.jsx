@@ -28,6 +28,7 @@ import Button from "../Button/Button";
 import EmptyState from "../EmptyState/EmptyState";
 import styles from "./DriverTable.module.css";
 import tableStyles from "../Table/Table.module.css";
+import ActionMenu from "../ActionMenu/ActionMenu";
 
 export const DriverTable = ({
   data = [],
@@ -329,103 +330,78 @@ export const DriverTable = ({
 
                     {/* Actions Menu */}
                     <td className={`${tableStyles.td} ${styles.actionCell}`}>
-                      <div style={{ position: "relative", display: "inline-block" }}>
+                      <ActionMenu
+                        isOpen={activeMenuId === row.id}
+                        onOpen={() => setActiveMenuId(row.id)}
+                        onClose={() => setActiveMenuId(null)}
+                      >
                         <button
                           type="button"
-                          onClick={() => setActiveMenuId(activeMenuId === row.id ? null : row.id)}
-                          style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "0.25rem", borderRadius: "var(--radius-xs)" }}
+                          className={tableStyles.pageButton}
+                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
+                          onClick={() => onView(row.id)}
                         >
-                          <MoreVertical size={18} />
+                          <Eye size={14} /> View Details
                         </button>
 
-                        {activeMenuId === row.id && (
-                          <div
-                            ref={menuRef}
-                            style={{
-                              position: "absolute",
-                              right: "100%",
-                              top: 0,
-                              width: "180px",
-                              backgroundColor: "var(--bg-secondary)",
-                              border: "1px solid var(--border-color)",
-                              borderRadius: "var(--radius-md)",
-                              boxShadow: "var(--shadow-xl)",
-                              zIndex: 85,
-                              overflow: "hidden",
-                              display: "flex",
-                              flexDirection: "column",
-                              marginRight: "0.5rem"
-                            }}
+                        <button
+                          type="button"
+                          className={tableStyles.pageButton}
+                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
+                          onClick={() => onEdit(row.id)}
+                        >
+                          <Edit2 size={14} /> Edit Profile
+                        </button>
+
+                        {row.status === "Suspended" ? (
+                          <button
+                            type="button"
+                            className={tableStyles.pageButton}
+                            style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--success)" }}
+                            onClick={() => onActivate(row.id)}
                           >
-                            <button
-                              type="button"
-                              className={tableStyles.pageButton}
-                              style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
-                              onClick={() => { onView(row.id); setActiveMenuId(null); }}
-                            >
-                              <Eye size={14} /> View Details
-                            </button>
-
-                            <button
-                              type="button"
-                              className={tableStyles.pageButton}
-                              style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
-                              onClick={() => { onEdit(row.id); setActiveMenuId(null); }}
-                            >
-                              <Edit2 size={14} /> Edit Profile
-                            </button>
-
-                            {row.status === "Suspended" ? (
-                              <button
-                                type="button"
-                                className={tableStyles.pageButton}
-                                style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--success)" }}
-                                onClick={() => { onActivate(row.id); setActiveMenuId(null); }}
-                              >
-                                <CheckCircle2 size={14} /> Activate Driver
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                className={tableStyles.pageButton}
-                                style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--warning)" }}
-                                onClick={() => { onSuspend(row.id); setActiveMenuId(null); }}
-                              >
-                                <AlertOctagon size={14} /> Suspend Driver
-                              </button>
-                            )}
-
-                            <button
-                              type="button"
-                              className={tableStyles.pageButton}
-                              style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--danger)" }}
-                              onClick={() => { onDelete(row.id); setActiveMenuId(null); }}
-                            >
-                              <Trash2 size={14} /> Delete Profile
-                            </button>
-
-                            <div style={{ height: "1px", backgroundColor: "var(--border-color)", margin: "0.25rem 0" }} />
-
-                            <button
-                              type="button"
-                              className={tableStyles.pageButton}
-                              style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
-                              onClick={() => { navigate(`/vehicles?assign=${row.id}`); setActiveMenuId(null); }}
-                            >
-                              <Link size={14} /> Assign Vehicle
-                            </button>
-
-                            <button
-                              type="button"
-                              className={tableStyles.pageButton}
-                              style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
-                              onClick={() => { navigate(`/trips?driver=${row.name}`); setActiveMenuId(null); }}
-                            >
-                              <Route size={14} /> View Trips
-                            </button>
-                          </div>
+                            <CheckCircle2 size={14} /> Activate Driver
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className={tableStyles.pageButton}
+                            style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--warning)" }}
+                            onClick={() => onSuspend(row.id)}
+                          >
+                            <AlertOctagon size={14} /> Suspend Driver
+                          </button>
                         )}
-                      </div>
+
+                        <button
+                          type="button"
+                          className={tableStyles.pageButton}
+                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--danger)" }}
+                          onClick={() => onDelete(row.id)}
+                        >
+                          <Trash2 size={14} /> Delete Profile
+                        </button>
+
+                        <div style={{ height: "1px", backgroundColor: "var(--border-color)", margin: "0.25rem 0" }} />
+
+                        <button
+                          type="button"
+                          className={tableStyles.pageButton}
+                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
+                          onClick={() => navigate(`/vehicles?assign=${row.id}`)}
+                        >
+                          <Link size={14} /> Assign Vehicle
+                        </button>
+
+                        <button
+                          type="button"
+                          className={tableStyles.pageButton}
+                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
+                          onClick={() => navigate(`/trips?driver=${row.name}`)}
+                        >
+                          <Route size={14} /> View Trips
+                        </button>
+                      </ActionMenu>
                     </td>
                   </tr>
                 );

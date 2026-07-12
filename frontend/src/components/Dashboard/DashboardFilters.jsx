@@ -1,8 +1,18 @@
 import React from "react";
 import { X } from "lucide-react";
 import { Select, Input, DatePicker, Button } from "../index";
+import { useGlobalFilters } from "../../contexts/FilterContext";
 
-export const DashboardFilters = ({ filters, updateFilter, resetFilters }) => {
+export const DashboardFilters = ({ filters: propFilters, updateFilter: propUpdate, resetFilters: propReset }) => {
+  // Prefer context; fall back to props for backwards compatibility
+  const ctx = useGlobalFilters();
+  const filters = propFilters ?? ctx.displayFilters;
+  const updateFilter = propUpdate ?? ctx.updateGlobalFilter;
+  const resetFilters = propReset ?? ctx.resetGlobalFilters;
+  const hasActiveFilters = propFilters
+    ? Object.values(propFilters).some((v) => v !== "")
+    : ctx.hasActiveGlobalFilters;
+
   const vehicleTypes = [
     { value: "", label: "All Types" },
     { value: "Heavy Truck", label: "Heavy Truck" },
@@ -11,11 +21,13 @@ export const DashboardFilters = ({ filters, updateFilter, resetFilters }) => {
     { value: "Flatbed Trailer", label: "Flatbed Trailer" }
   ];
 
+  // Values match backend vehicle status enum
   const vehicleStatuses = [
     { value: "", label: "All Statuses" },
-    { value: "Active", label: "Active" },
-    { value: "Maintenance", label: "Maintenance" },
-    { value: "Inactive", label: "Inactive" }
+    { value: "Available", label: "Available" },
+    { value: "On Trip", label: "On Trip" },
+    { value: "In Shop", label: "In Shop" },
+    { value: "Retired", label: "Retired" }
   ];
 
   const regions = [
@@ -26,32 +38,29 @@ export const DashboardFilters = ({ filters, updateFilter, resetFilters }) => {
     { value: "North", label: "North Region" }
   ];
 
+  // Values match backend trip status enum
   const tripStatuses = [
     { value: "", label: "All Trip Statuses" },
-    { value: "Scheduled", label: "Scheduled" },
-    { value: "Active", label: "Active" },
+    { value: "Draft", label: "Draft" },
+    { value: "Dispatched", label: "Dispatched" },
     { value: "Completed", label: "Completed" },
     { value: "Cancelled", label: "Cancelled" }
   ];
 
-  const hasActiveFilters = Object.values(filters).some(val => val !== "");
-
   return (
-    <div className="glass-panel" style={{
-      padding: "1.25rem 1.5rem",
-      borderRadius: "var(--radius-lg)",
-      marginBottom: "2rem",
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-      gap: "1rem",
-      alignItems: "end"
-    }}>
+    <div
+      className="glass-panel dashboard-filters-grid"
+      style={{
+        padding: "1.25rem 1.5rem",
+        borderRadius: "var(--radius-lg)",
+        marginBottom: "2rem"
+      }}
+    >
       <Select
         label="Vehicle Type"
         value={filters.vehicleType}
         onChange={(e) => updateFilter("vehicleType", e.target.value)}
         options={vehicleTypes}
-        style={{ marginBottom: 0 }}
       />
 
       <Select
@@ -59,7 +68,6 @@ export const DashboardFilters = ({ filters, updateFilter, resetFilters }) => {
         value={filters.vehicleStatus}
         onChange={(e) => updateFilter("vehicleStatus", e.target.value)}
         options={vehicleStatuses}
-        style={{ marginBottom: 0 }}
       />
 
       <Select
@@ -67,7 +75,6 @@ export const DashboardFilters = ({ filters, updateFilter, resetFilters }) => {
         value={filters.region}
         onChange={(e) => updateFilter("region", e.target.value)}
         options={regions}
-        style={{ marginBottom: 0 }}
       />
 
       <Input
@@ -75,7 +82,6 @@ export const DashboardFilters = ({ filters, updateFilter, resetFilters }) => {
         placeholder="Driver name..."
         value={filters.driver}
         onChange={(e) => updateFilter("driver", e.target.value)}
-        style={{ marginBottom: 0 }}
       />
 
       <Select
@@ -83,35 +89,38 @@ export const DashboardFilters = ({ filters, updateFilter, resetFilters }) => {
         value={filters.tripStatus}
         onChange={(e) => updateFilter("tripStatus", e.target.value)}
         options={tripStatuses}
-        style={{ marginBottom: 0 }}
       />
 
       <DatePicker
         label="Start Date"
         value={filters.startDate}
         onChange={(e) => updateFilter("startDate", e.target.value)}
-        style={{ marginBottom: 0 }}
       />
 
       <DatePicker
         label="End Date"
         value={filters.endDate}
         onChange={(e) => updateFilter("endDate", e.target.value)}
-        style={{ marginBottom: 0 }}
       />
 
-      {hasActiveFilters && (
+      {/* Always rendered — hidden via CSS when no filters active so layout never shifts */}
+      <div
+        className={`filter-clear-btn${hasActiveFilters ? "" : " hidden"}`}
+        style={{ display: "flex", alignItems: "flex-end" }}
+      >
         <Button
           variant="secondary"
           onClick={resetFilters}
           startIcon={<X size={16} />}
           style={{ width: "100%", justifyContent: "center" }}
+          tabIndex={hasActiveFilters ? 0 : -1}
         >
           Clear Filters
         </Button>
-      )}
+      </div>
     </div>
   );
 };
 
 export default DashboardFilters;
+

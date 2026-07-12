@@ -2,6 +2,7 @@ import React from "react";
 import { RefreshCw, User, Calendar, UserCheck } from "lucide-react";
 import { useDashboard } from "../hooks/useDashboard";
 import { useAuth } from "../contexts/AuthContext";
+import { useGlobalFilters } from "../contexts/FilterContext";
 import PageHeader from "../components/PageHeader/PageHeader";
 import Button from "../components/Button/Button";
 import LoadingSkeleton from "../components/LoadingSkeleton/LoadingSkeleton";
@@ -23,6 +24,7 @@ import {
 
 export const Dashboard = () => {
   const { user } = useAuth();
+  const { globalFilters } = useGlobalFilters();
   const {
     isLoading,
     error,
@@ -33,13 +35,9 @@ export const Dashboard = () => {
     fuel,
     expenses,
     notifications,
-    filters,
-    searchTerm,
-    setSearchTerm,
-    updateFilter,
-    resetFilters,
     refresh
-  } = useDashboard();
+  } = useDashboard(globalFilters);
+
 
   // Date formatting utility
   const currentDate = new Date().toLocaleDateString("en-US", {
@@ -121,12 +119,9 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      {/* Filters Section */}
-      <DashboardFilters
-        filters={filters}
-        updateFilter={updateFilter}
-        resetFilters={resetFilters}
-      />
+      {/* Filters Section — reads from global FilterContext directly */}
+      <DashboardFilters />
+
 
       {isLoading ? (
         // Loading State Representation

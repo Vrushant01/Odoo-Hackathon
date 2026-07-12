@@ -112,7 +112,7 @@ export const MaintenanceForm = ({ defaultValues, onSubmit, onCancel, isEdit = fa
   ];
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <form onSubmit={handleSubmit(handleFormSubmit)} style={{ display: "flex", flexDirection: "column", height: "100%", maxHeight: "calc(90vh - 160px)", overflow: "hidden" }}>
       {submitError && (
         <div style={{
           display: "flex",
@@ -124,67 +124,69 @@ export const MaintenanceForm = ({ defaultValues, onSubmit, onCancel, isEdit = fa
           borderRadius: "var(--radius-sm)",
           fontSize: "0.875rem",
           fontWeight: 600,
-          border: "1px solid hsla(var(--danger-h), var(--danger-s), var(--danger-l), 0.2)"
+          border: "1px solid hsla(var(--danger-h), var(--danger-s), var(--danger-l), 0.2)",
+          marginBottom: "0.5rem"
         }}>
           <AlertCircle size={16} />
           <span>{submitError}</span>
         </div>
       )}
 
-      {/* Inputs Grid Layout */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-        gap: "1rem",
-        maxHeight: "55vh",
-        overflowY: "auto",
-        paddingRight: "0.25rem",
-        paddingBottom: "0.5rem"
-      }}>
-        <Select label="Select Vehicle" error={errors.vehicle?.message} options={vehicleOptions} disabled={loading} {...register("vehicle")} />
+      {/* Scrollable Form Body */}
+      <div style={{ flex: 1, overflowY: "auto", paddingRight: "0.5rem", paddingBottom: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "1rem",
+          paddingRight: "0.25rem",
+          paddingBottom: "0.5rem"
+        }}>
+          <Select label="Select Vehicle" error={errors.vehicle?.message} options={vehicleOptions} disabled={loading} autoFocus {...register("vehicle")} />
 
-        <Select label="Maintenance Type" error={errors.type?.message} options={types} disabled={loading} {...register("type")} />
+          <Select label="Maintenance Type" error={errors.type?.message} options={types} disabled={loading} {...register("type")} />
 
-        <Select label="Classification Category" error={errors.category?.message} options={categories} disabled={loading} {...register("category")} />
+          <Select label="Classification Category" error={errors.category?.message} options={categories} disabled={loading} {...register("category")} />
 
-        <Select label="Priority Urgency" error={errors.priority?.message} options={priorities} disabled={loading} {...register("priority")} />
+          <Select label="Priority Urgency" error={errors.priority?.message} options={priorities} disabled={loading} {...register("priority")} />
 
-        <Input label="Workshop Center Name" placeholder="e.g. West Coast Fleet Hub" error={errors.workshop?.message} disabled={loading} {...register("workshop")} />
+          <Input label="Workshop Center Name" placeholder="e.g. West Coast Fleet Hub" error={errors.workshop?.message} disabled={loading} {...register("workshop")} />
 
-        <Input label="Assigned Mechanic" placeholder="e.g. Alex Rover" error={errors.mechanic?.message} disabled={loading} {...register("mechanic")} />
+          <Input label="Assigned Mechanic" placeholder="e.g. Alex Rover" error={errors.mechanic?.message} disabled={loading} {...register("mechanic")} />
 
-        <DatePicker label="Scheduled Start Date" error={errors.scheduledDate?.message} disabled={loading} {...register("scheduledDate")} />
+          <DatePicker label="Scheduled Start Date" error={errors.scheduledDate?.message} disabled={loading} {...register("scheduledDate")} />
 
-        <DatePicker label="Estimated Completion Date" error={errors.estimatedCompletion?.message} disabled={loading} {...register("estimatedCompletion")} />
+          <DatePicker label="Estimated Completion Date" error={errors.estimatedCompletion?.message} disabled={loading} {...register("estimatedCompletion")} />
 
-        <Input label="Estimated Cost (USD)" type="number" placeholder="e.g. 350" error={errors.cost?.message} disabled={loading} {...register("cost")} />
+          <Input label="Estimated Cost (USD)" type="number" placeholder="e.g. 350" error={errors.cost?.message} disabled={loading} {...register("cost")} />
 
-        <Input label="Spare Parts Required (Comma Separated)" placeholder="e.g. Brake pads, Oil filters" error={errors.partsRequired?.message} disabled={loading} {...register("partsRequired")} />
+          <Input label="Spare Parts Required (Comma Separated)" placeholder="e.g. Brake pads, Oil filters" error={errors.partsRequired?.message} disabled={loading} {...register("partsRequired")} />
+        </div>
+
+        <Textarea
+          label="Service Diagnostic / Failure Description"
+          placeholder="Provide diagnostic codes, failure reports, or scheduled servicing goals..."
+          error={errors.description?.message}
+          disabled={loading}
+          {...register("description")}
+        />
+
+        <Textarea
+          label="Operator / Administrative Remarks"
+          placeholder="Enter additional remarks, dispatch rules overrides, or compliance notes..."
+          error={errors.remarks?.message}
+          disabled={loading}
+          {...register("remarks")}
+        />
       </div>
 
-      <Textarea
-        label="Service Diagnostic / Failure Description"
-        placeholder="Provide diagnostic codes, failure reports, or scheduled servicing goals..."
-        error={errors.description?.message}
-        disabled={loading}
-        {...register("description")}
-      />
-
-      <Textarea
-        label="Operator / Administrative Remarks"
-        placeholder="Enter additional remarks, dispatch rules overrides, or compliance notes..."
-        error={errors.remarks?.message}
-        disabled={loading}
-        {...register("remarks")}
-      />
-
+      {/* Action Buttons (Sticky Footer) */}
       <div style={{
         display: "flex",
         justifyContent: "flex-end",
         gap: "0.75rem",
         borderTop: "1px solid var(--border-color)",
         paddingTop: "1rem",
-        marginTop: "0.5rem"
+        marginTop: "auto"
       }}>
         <Button variant="secondary" onClick={onCancel} disabled={loading}>
           Cancel

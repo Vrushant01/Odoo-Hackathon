@@ -104,9 +104,72 @@ h1, h2, h3, h4, h5, h6 {
   animation: fadeIn var(--transition-normal) forwards;
 }
 
-/* Toast container customizations if needed */
 .sonner-toast {
   font-family: var(--font-primary) !important;
   border-radius: var(--radius-md) !important;
   box-shadow: var(--shadow-lg) !important;
 }
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ─── Dashboard Filters Responsive Grid ─────────────────────────────────────
+   Always 8 grid slots (7 filters + Clear button).
+   The Clear button uses visibility:hidden when inactive so the column
+   space is always reserved and the grid never reflows or gaps.
+   ─────────────────────────────────────────────────────────────────────────── */
+.dashboard-filters-grid {
+  display: grid;
+  gap: 1rem;
+  align-items: end;
+  /* Desktop ≥1400px: all 8 in one row */
+  grid-template-columns: repeat(8, 1fr);
+}
+
+/* Laptop 1024px–1399px: 4 columns, 2 rows */
+@media (max-width: 1399px) {
+  .dashboard-filters-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Tablet 640px–1023px: 2 columns */
+@media (max-width: 1023px) {
+  .dashboard-filters-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile <640px: 1 column */
+@media (max-width: 639px) {
+  .dashboard-filters-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Clear Filters button — always occupies its grid cell */
+.dashboard-filters-grid .filter-clear-btn {
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+}
+.dashboard-filters-grid .filter-clear-btn.hidden {
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* Ensure every filter control inside the grid fills its cell height */
+.dashboard-filters-grid > * {
+  margin-bottom: 0 !important;
+  min-width: 0; /* prevent overflow */
+}
+

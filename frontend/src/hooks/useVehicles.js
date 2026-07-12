@@ -1,11 +1,18 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import vehicleService from "../services/vehicleService";
+import { useGlobalFilters } from "../contexts/FilterContext";
 
 export const useVehicles = () => {
   const [vehicles, setVehicles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const [pageCount, setPageCount] = useState(0);
+  const [summaryCounts, setSummaryCounts] = useState({ total: 0, available: 0, onTrip: 0, maintenance: 0, retired: 0 });
+
+  // Global filters from context
+  const { globalFilters } = useGlobalFilters();
 
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState("");
@@ -16,13 +23,13 @@ export const useVehicles = () => {
     minLoadCapacity: "",
     maxLoadCapacity: "",
     acquisitionYear: "",
-    maintenanceStatus: "" // 'due' | 'ok'
+    maintenanceStatus: ""
   });
 
   // Sorting State
   const [sorting, setSorting] = useState({
     field: "plateNumber",
-    order: "asc" // 'asc' | 'desc'
+    order: "asc"
   });
 
   // Pagination State
@@ -34,14 +41,60 @@ export const useVehicles = () => {
   // Row Selection (Bulk Actions)
   const [selectedIds, setSelectedIds] = useState([]);
 
-  // Fetch Vehicles
+  // Expose statistics endpoint in service or locally
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1'}/vehicles/statistics`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("transitops_token") || sessionStorage.getItem("transitops_token")}`
+        }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSummaryCounts({
+          total: data.data.totalVehicles || 0,
+          available: data.data.available || 0,
+          onTrip: data.data.onTrip || 0,
+          maintenance: data.data.inShop || 0,
+          retired: data.data.retired || 0
+        });
+      }
+    } catch (e) {
+      console.error("Failed to load vehicle statistics:", e);
+    }
+  }, []);
+
+  // Fetch Vehicles from backend with parameters
   const fetchVehicles = useCallback(async (isSilent = false) => {
     if (!isSilent) setIsLoading(true);
     setError(null);
 
     try {
-      const data = await vehicleService.getVehicles();
-      setVehicles(data);
+      const res = await vehicleService.getVehicles({
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+        search: searchTerm,
+        sort: sorting.field,
+        sortOrder: sorting.order,
+        // Page-level filters
+        type: filters.type || globalFilters.vehicleType,
+        status: filters.status || globalFilters.vehicleStatus,
+        region: filters.region || globalFilters.region,
+        // Date range from global filters
+        startDate: globalFilters.startDate,
+        endDate: globalFilters.endDate
+      });
+
+      if (res && res.vehicles) {
+        setVehicles(res.vehicles);
+        setPageCount(res.pagination.totalPages);
+        setTotalCount(res.pagination.totalResults);
+      } else {
+        setVehicles(res);
+        setPageCount(1);
+        setTotalCount(res.length);
+      }
+      fetchStats();
     } catch (err) {
       console.error(err);
       setError("Failed to fetch vehicles list.");
@@ -49,7 +102,23 @@ export const useVehicles = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [
+    pagination.pageIndex,
+    pagination.pageSize,
+    searchTerm,
+    sorting.field,
+    sorting.order,
+    filters.type,
+    filters.status,
+    filters.region,
+    // Global filter dependencies
+    globalFilters.vehicleType,
+    globalFilters.vehicleStatus,
+    globalFilters.region,
+    globalFilters.startDate,
+    globalFilters.endDate,
+    fetchStats
+  ]);
 
   useEffect(() => {
     fetchVehicles();
@@ -64,7 +133,7 @@ export const useVehicles = () => {
   // Filters Handler
   const updateFilter = useCallback((key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
-    setPagination((prev) => ({ ...prev, pageIndex: 0 })); // Reset page on filter
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, []);
 
   const resetFilters = useCallback(() => {
@@ -141,7 +210,6 @@ export const useVehicles = () => {
         odometer: 0,
         notes: `Duplicate record of ${target.plateNumber}.`
       };
-      // Omit id and system generated fields
       delete duplicateData.id;
       
       await addVehicle(duplicateData);
@@ -189,101 +257,12 @@ export const useVehicles = () => {
     }
   };
 
-  // KPI summary counters derived from actual list
-  const summaryCounts = useMemo(() => {
-    const counts = { total: 0, available: 0, onTrip: 0, maintenance: 0, retired: 0 };
-    vehicles.forEach((v) => {
-      if (v.deleted) return;
-      counts.total++;
-      if (v.status === "Available" || v.status === "online") counts.available++;
-      else if (v.status === "On Trip" || v.status === "on-trip" || v.status === "on duty") counts.onTrip++;
-      else if (v.status === "In Shop" || v.status === "Maintenance") counts.maintenance++;
-      else if (v.status === "Retired") counts.retired++;
-    });
-    return counts;
-  }, [vehicles]);
-
-  // Client-Side Search, Filter & Sort Logic
-  const filteredAndSortedVehicles = useMemo(() => {
-    let result = [...vehicles];
-
-    // 1. Search filter
-    if (searchTerm) {
-      const termLower = searchTerm.toLowerCase();
-      result = result.filter(
-        (v) =>
-          v.plateNumber.toLowerCase().includes(termLower) ||
-          v.name.toLowerCase().includes(termLower) ||
-          v.model.toLowerCase().includes(termLower) ||
-          v.type.toLowerCase().includes(termLower) ||
-          v.status.toLowerCase().includes(termLower)
-      );
-    }
-
-    // 2. Advanced filters
-    if (filters.type) {
-      result = result.filter((v) => v.type === filters.type);
-    }
-    if (filters.status) {
-      result = result.filter((v) => v.status === filters.status);
-    }
-    if (filters.region) {
-      result = result.filter((v) => v.region === filters.region);
-    }
-    if (filters.minLoadCapacity) {
-      result = result.filter((v) => v.loadCapacity >= Number(filters.minLoadCapacity));
-    }
-    if (filters.maxLoadCapacity) {
-      result = result.filter((v) => v.loadCapacity <= Number(filters.maxLoadCapacity));
-    }
-    if (filters.acquisitionYear) {
-      result = result.filter((v) => String(v.year) === filters.acquisitionYear);
-    }
-    if (filters.maintenanceStatus) {
-      const now = new Date();
-      result = result.filter((v) => {
-        if (!v.nextMaintenance) return false;
-        const dueDate = new Date(v.nextMaintenance);
-        const isDue = dueDate <= now;
-        return filters.maintenanceStatus === "due" ? isDue : !isDue;
-      });
-    }
-
-    // 3. Sorting
-    if (sorting.field) {
-      const f = sorting.field;
-      const orderMultiplier = sorting.order === "asc" ? 1 : -1;
-
-      result.sort((a, b) => {
-        let valA = a[f];
-        let valB = b[f];
-
-        // String conversions
-        if (typeof valA === "string") valA = valA.toLowerCase();
-        if (typeof valB === "string") valB = valB.toLowerCase();
-
-        if (valA < valB) return -1 * orderMultiplier;
-        if (valA > valB) return 1 * orderMultiplier;
-        return 0;
-      });
-    }
-
-    return result;
-  }, [vehicles, searchTerm, filters, sorting]);
-
-  // Paginated Results
-  const paginatedVehicles = useMemo(() => {
-    const start = pagination.pageIndex * pagination.pageSize;
-    const end = start + pagination.pageSize;
-    return filteredAndSortedVehicles.slice(start, end);
-  }, [filteredAndSortedVehicles, pagination]);
-
-  const pageCount = Math.ceil(filteredAndSortedVehicles.length / pagination.pageSize);
+  const allVisibleIds = useMemo(() => vehicles.map((v) => v.id), [vehicles]);
 
   return {
-    vehicles: paginatedVehicles,
-    totalCount: filteredAndSortedVehicles.length,
-    allVisibleIds: paginatedVehicles.map(v => v.id),
+    vehicles,
+    totalCount,
+    allVisibleIds,
     isLoading,
     error,
     searchTerm,
