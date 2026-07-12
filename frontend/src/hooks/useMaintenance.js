@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import maintenanceService from "../services/maintenanceService";
 import { useGlobalFilters } from "../contexts/FilterContext";
+import { performBulkExport } from "../utils/exportHelper";
 
 export const useMaintenance = () => {
   const [maintenanceRecords, setMaintenanceRecords] = useState([]);
@@ -226,7 +227,7 @@ export const useMaintenance = () => {
       toast.warning("Please select at least one record to export.");
       return;
     }
-    toast.info(`Exporting ${selectedIds.length} records to ${format.toUpperCase()} (Mock).`);
+    performBulkExport("maintenance", format, selectedIds);
   };
 
   // Row Selection Helpers

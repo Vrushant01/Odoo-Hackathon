@@ -4,7 +4,7 @@ class AuditService {
   /**
    * Log an operational action.
    */
-  async log(userId, action, module, oldValue = null, newValue = null, ipAddress = '', device = '') {
+  async log(userId, action, module, oldValue = null, newValue = null, ipAddress = '', device = '', targetUser = null) {
     try {
       // Cast ObjectId if passed as string
       await auditRepository.create({
@@ -14,7 +14,8 @@ class AuditService {
         oldValue,
         newValue,
         ipAddress,
-        device
+        device,
+        targetUser
       });
     } catch (error) {
       console.error('[AUDIT ERROR] Failed to record audit log:', error.message);

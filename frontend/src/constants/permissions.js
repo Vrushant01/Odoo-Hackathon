@@ -1,4 +1,5 @@
 export const ROLES = {
+  SUPER_ADMIN: "Super Admin",
   FLEET_MANAGER: "Fleet Manager",
   DISPATCHER: "Dispatcher",
   SAFETY_OFFICER: "Safety Officer",
@@ -19,11 +20,18 @@ export const PERMISSIONS = {
   FUEL_MANAGE: "fuel:manage",
   REPORTS_VIEW: "reports:view",
   SETTINGS_VIEW: "settings:view",
-  SETTINGS_MANAGE: "settings:manage"
+  SETTINGS_MANAGE: "settings:manage",
+  USERS_VIEW: "users:view",
+  USERS_MANAGE: "users:manage"
 };
 
 // Maps roles to their permitted access tags
 export const ROLE_PERMISSIONS = {
+  [ROLES.SUPER_ADMIN]: [
+    PERMISSIONS.DASHBOARD_VIEW,
+    PERMISSIONS.USERS_VIEW,
+    PERMISSIONS.USERS_MANAGE
+  ],
   [ROLES.FLEET_MANAGER]: [
     PERMISSIONS.DASHBOARD_VIEW,
     PERMISSIONS.VEHICLES_VIEW,
@@ -75,6 +83,12 @@ export const SIDEBAR_ITEMS = [
     icon: "LayoutDashboard",
     route: "/dashboard",
     permission: PERMISSIONS.DASHBOARD_VIEW
+  },
+  {
+    title: "User Management",
+    icon: "ShieldCheck",
+    route: "/users",
+    permission: PERMISSIONS.USERS_VIEW
   },
   {
     title: "Vehicles",

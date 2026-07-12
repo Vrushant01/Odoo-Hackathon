@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import tripService from "../services/tripService";
 import { useGlobalFilters } from "../contexts/FilterContext";
+import { performBulkExport } from "../utils/exportHelper";
 
 export const useTrips = () => {
   const [trips, setTrips] = useState([]);
@@ -230,7 +231,7 @@ export const useTrips = () => {
       toast.warning("Please select at least one trip to export.");
       return;
     }
-    toast.info(`Exporting ${selectedIds.length} records to ${format.toUpperCase()} (Mock).`);
+    performBulkExport("trips", format, selectedIds);
   };
 
   // Row Selection Helpers

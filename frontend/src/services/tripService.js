@@ -96,10 +96,13 @@ export const tripService = {
 
     const res = await api.get("/trips", { params: backendParams });
     if (res.data && res.data.trips) {
-      return {
-        trips: res.data.trips.map(mapTripToFrontend),
-        pagination: res.data.pagination
-      };
+      if (params.page !== undefined || params.limit !== undefined) {
+        return {
+          trips: res.data.trips.map(mapTripToFrontend),
+          pagination: res.data.pagination
+        };
+      }
+      return res.data.trips.map(mapTripToFrontend);
     }
 
     const arrayData = Array.isArray(res.data) ? res.data : (res.data?.trips || []);

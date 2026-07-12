@@ -121,14 +121,33 @@ export const TripForm = ({ defaultValues, onSubmit, onCancel, isEdit = false }) 
     }
   };
 
+  const filteredVehicleOptions = useMemo(() => {
+    return activeVehicles.filter(v => {
+      if (defaultValues?.vehicle && (v.id === defaultValues.vehicle || `${v.name} (${v.plateNumber})` === defaultValues.vehicle)) {
+        return true;
+      }
+      return v.status !== "Retired" && v.status !== "In Shop";
+    });
+  }, [activeVehicles, defaultValues]);
+
+  const filteredDriverOptions = useMemo(() => {
+    return activeDrivers.filter(d => {
+      if (defaultValues?.driver && (d.id === defaultValues.driver || d.name === defaultValues.driver)) {
+        return true;
+      }
+      const isExpired = d.licenseExpiryDate && new Date(d.licenseExpiryDate) < new Date();
+      return d.status !== "Suspended" && d.status !== "License Expired" && !isExpired;
+    });
+  }, [activeDrivers, defaultValues]);
+
   const vehicleOptions = [
     { value: "", label: "Select vehicle..." },
-    ...activeVehicles.map(v => ({ value: `${v.name} (${v.plateNumber})`, label: `${v.name} (${v.plateNumber}) [Max: ${v.loadCapacity.toLocaleString()} lbs] - ${v.status}` }))
+    ...filteredVehicleOptions.map(v => ({ value: `${v.name} (${v.plateNumber})`, label: `${v.name} (${v.plateNumber}) [Max: ${v.loadCapacity.toLocaleString()} kg] - ${v.status}` }))
   ];
 
   const driverOptions = [
     { value: "", label: "Select driver..." },
-    ...activeDrivers.map(d => ({ value: d.name, label: `${d.name} (${d.licenseCategory}) - ${d.status}` }))
+    ...filteredDriverOptions.map(d => ({ value: d.name, label: `${d.name} (${d.licenseCategory}) - ${d.status}` }))
   ];
 
   const priorities = [
@@ -177,9 +196,9 @@ export const TripForm = ({ defaultValues, onSubmit, onCancel, isEdit = false }) 
 
           <Input label="Cargo Payload Description" placeholder="e.g. Industrial Generators" error={errors.cargoDescription?.message} disabled={loading} {...register("cargoDescription")} />
 
-          <Input label="Cargo Payload Weight (lbs)" type="number" placeholder="e.g. 15000" error={errors.cargoWeight?.message} disabled={loading} {...register("cargoWeight")} />
+          <Input label="Cargo Payload Weight (kg)" type="number" placeholder="e.g. 700" error={errors.cargoWeight?.message} disabled={loading} {...register("cargoWeight")} />
 
-          <Input label="Planned Distance (miles)" type="number" placeholder="e.g. 240" error={errors.plannedDistance?.message} disabled={loading} {...register("plannedDistance")} />
+          <Input label="Planned Distance (km)" type="number" placeholder="e.g. 38" error={errors.plannedDistance?.message} disabled={loading} {...register("plannedDistance")} />
 
           <Input label="Expected Duration (hours)" type="number" step="0.1" placeholder="e.g. 5.5" error={errors.expectedDuration?.message} disabled={loading} {...register("expectedDuration")} />
 
@@ -190,25 +209,29 @@ export const TripForm = ({ defaultValues, onSubmit, onCancel, isEdit = false }) 
 
         {selectedVehicleCapacity > 0 && (
           <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", fontWeight: 600, padding: "0.25rem 0" }}>
-            Selected Vehicle Cargo Capacity Limit: <strong style={{ color: "var(--primary)" }}>{selectedVehicleCapacity.toLocaleString()} lbs</strong>
+            Selected Vehicle Cargo Capacity Limit: <strong style={{ color: "var(--primary)" }}>{selectedVehicleCapacity.toLocaleString()} kg</strong>
           </div>
         )}
 
         {cargoExceedsWarning && (
           <div style={{
+            padding: "1rem",
+            background: "#fff5f5",
+            color: "#e53e3e",
+            borderRadius: "8px",
+            border: "1.5px solid #feb2b2",
             display: "flex",
-            gap: "0.5rem",
-            alignItems: "center",
-            padding: "0.75rem 1rem",
-            background: "var(--warning-light)",
-            color: "var(--warning)",
-            borderRadius: "var(--radius-sm)",
-            fontSize: "0.825rem",
+            flexDirection: "column",
+            gap: "0.25rem",
+            fontSize: "0.9rem",
             fontWeight: 600,
-            border: "1px solid hsla(var(--warning-h), var(--warning-s), var(--warning-l), 0.2)"
+            margin: "0.5rem 0"
           }}>
-            <AlertTriangle size={16} />
-            <span>Warning: Cargo payload weight exceeds the maximum load capacity of the assigned vehicle!</span>
+            <div>Vehicle Capacity: {selectedVehicleCapacity} kg</div>
+            <div>Cargo Weight: {watchedCargoWeight} kg</div>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", color: "#e53e3e" }}>
+              <span>❌ Capacity exceeded by {Number(watchedCargoWeight) - selectedVehicleCapacity} kg – dispatch blocked</span>
+            </div>
           </div>
         )}
 
@@ -233,8 +256,8 @@ export const TripForm = ({ defaultValues, onSubmit, onCancel, isEdit = false }) 
         <Button variant="secondary" onClick={onCancel} disabled={loading}>
           Cancel
         </Button>
-        <Button type="submit" variant="primary" loading={loading}>
-          {isEdit ? "Save Changes" : "Create Trip Draft"}
+        <Button type="submit" variant="primary" loading={loading} disabled={cargoExceedsWarning}>
+          {cargoExceedsWarning ? "Dispatch (disabled)" : (isEdit ? "Save Changes" : "Create Trip Draft")}
         </Button>
       </div>
     </form>

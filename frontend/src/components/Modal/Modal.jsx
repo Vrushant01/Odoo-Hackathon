@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./Modal.module.css";
@@ -50,7 +51,7 @@ export const Modal = ({
     exit: { opacity: 0, scale: 0.95, y: 15, transition: { duration: 0.2 } }
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -92,7 +93,8 @@ export const Modal = ({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

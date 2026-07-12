@@ -9,12 +9,21 @@ const AuditLogSchema = new mongoose.Schema({
   action: {
     type: String,
     required: true,
-    enum: ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'STATUS_CHANGE']
+    enum: [
+      'CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'STATUS_CHANGE',
+      'Failed Login', 'Successful Login', 'Account Locked', 'Account Unlocked',
+      'Password Reset', 'Role Changed', 'User Created', 'User Deleted'
+    ]
   },
   module: {
     type: String,
     required: true,
-    enum: ['Auth', 'Vehicles', 'Drivers', 'Trips', 'Maintenance', 'FuelLogs', 'Expenses', 'Settings']
+    enum: ['Auth', 'Vehicles', 'Drivers', 'Trips', 'Maintenance', 'FuelLogs', 'Expenses', 'Settings', 'Users']
+  },
+  targetUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
   },
   oldValue: {
     type: mongoose.Schema.Types.Mixed

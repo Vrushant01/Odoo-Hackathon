@@ -17,6 +17,7 @@ const loginSchema = z.object({
 });
 
 const ROLE_DEMOS = [
+  { role: "Super Admin", email: "admin@transitops.com", password: "password" },
   { role: "Fleet Manager", email: "manager@transitops.com", password: "password" },
   { role: "Dispatcher", email: "dispatcher@transitops.com", password: "password" },
   { role: "Safety Officer", email: "safety@transitops.com", password: "password" },
@@ -69,8 +70,12 @@ export const Login = () => {
       toast.success(`Welcome back, ${data.role}!`);
       navigate(from, { replace: true });
     } catch (err) {
-      setErrorMsg(err.message || "Login failed. Please check your credentials.");
-      toast.error("Login failed");
+      if (err.message && err.message.toLowerCase().includes("locked")) {
+        navigate("/locked");
+      } else {
+        setErrorMsg(err.message || "Login failed. Please check your credentials.");
+        toast.error("Login failed");
+      }
     } finally {
       setLoading(false);
     }

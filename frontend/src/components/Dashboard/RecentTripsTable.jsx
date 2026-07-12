@@ -65,16 +65,35 @@ export const RecentTripsTable = ({ trips, isLoading }) => {
     {
       id: "actions",
       header: "Actions",
-      cell: ({ row }) => (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleViewDetails(row.original.id)}
-          startIcon={<Eye size={12} />}
-        >
-          View
-        </Button>
-      )
+      cell: ({ row }) => {
+        const status = row.original.status;
+        const normalized = status ? String(status).toLowerCase().trim() : "";
+        let statusColor = "var(--text-secondary)";
+        if (normalized === "completed") {
+          statusColor = "var(--success)";
+        } else if (normalized === "dispatched" || normalized === "draft") {
+          statusColor = "var(--text-secondary)";
+        } else if (normalized === "in transit" || normalized === "in-transit") {
+          statusColor = "var(--warning)";
+        } else if (normalized === "delayed") {
+          statusColor = "var(--danger)";
+        } else if (normalized === "cancelled") {
+          statusColor = "var(--danger)";
+        } else if (normalized === "pending") {
+          statusColor = "var(--warning)";
+        }
+        return (
+          <Button
+            variant="outline"
+            size="sm"
+            style={{ color: statusColor, borderColor: statusColor }}
+            onClick={() => handleViewDetails(row.original.id)}
+            startIcon={<Eye size={12} />}
+          >
+            View
+          </Button>
+        );
+      }
     }
   ];
 

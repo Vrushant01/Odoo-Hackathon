@@ -7,7 +7,9 @@ const ApiResponse = require('../utils/apiResponse');
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const { token, user } = await authService.login(email, password);
+    const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    const userAgentStr = req.headers['user-agent'] || '';
+    const { token, user } = await authService.login(email, password, ipAddress, userAgentStr);
 
     // Set cookie options
     const cookieOptions = {

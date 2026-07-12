@@ -27,6 +27,7 @@ import EmptyState from "../EmptyState/EmptyState";
 import styles from "./MaintenanceTable.module.css";
 import tableStyles from "../Table/Table.module.css";
 import ActionMenu from "../ActionMenu/ActionMenu";
+import actionMenuStyles from "../ActionMenu/ActionMenu.module.css";
 
 export const MaintenanceTable = ({
   data = [],
@@ -317,85 +318,45 @@ export const MaintenanceTable = ({
                         onOpen={() => setActiveMenuId(row.id)}
                         onClose={() => setActiveMenuId(null)}
                       >
-                        <button
-                          type="button"
-                          className={tableStyles.pageButton}
-                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
-                          onClick={() => onView(row.id)}
-                        >
+                        <button type="button" className={actionMenuStyles.menuItem} onClick={() => onView(row.id)}>
                           <Eye size={14} /> View Details
                         </button>
 
                         {(row.status === "Scheduled" || row.status === "In Progress" || row.status === "Overdue") && (
-                          <button
-                            type="button"
-                            className={tableStyles.pageButton}
-                            style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
-                            onClick={() => onEdit(row.id)}
-                          >
+                          <button type="button" className={actionMenuStyles.menuItem} onClick={() => onEdit(row.id)}>
                             <Edit2 size={14} /> Edit Worksheet
                           </button>
                         )}
 
                         {(row.status === "Scheduled" || row.status === "Overdue") && (
-                          <button
-                            type="button"
-                            className={tableStyles.pageButton}
-                            style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--primary)" }}
-                            onClick={() => onStart(row.id)}
-                          >
+                          <button type="button" className={actionMenuStyles.menuItem} style={{ color: "var(--primary)" }} onClick={() => onStart(row.id)}>
                             <Wrench size={14} /> Start Service
                           </button>
                         )}
 
                         {row.status === "In Progress" && (
-                          <button
-                            type="button"
-                            className={tableStyles.pageButton}
-                            style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--success)" }}
-                            onClick={() => onComplete(row.id)}
-                          >
+                          <button type="button" className={actionMenuStyles.menuItem} style={{ color: "var(--success)" }} onClick={() => onComplete(row.id)}>
                             <CheckCircle2 size={14} /> Complete Service
                           </button>
                         )}
 
                         {(row.status === "Scheduled" || row.status === "In Progress" || row.status === "Overdue") && (
-                          <button
-                            type="button"
-                            className={tableStyles.pageButton}
-                            style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--warning)" }}
-                            onClick={() => onCancel(row.id)}
-                          >
+                          <button type="button" className={actionMenuStyles.menuItem} style={{ color: "var(--warning)" }} onClick={() => onCancel(row.id)}>
                             <AlertOctagon size={14} /> Cancel Service
                           </button>
                         )}
 
-                        <button
-                          type="button"
-                          className={tableStyles.pageButton}
-                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--danger)" }}
-                          onClick={() => onDelete(row.id)}
-                        >
+                        <button type="button" className={actionMenuStyles.menuItem} style={{ color: "var(--danger)" }} onClick={() => onDelete(row.id)}>
                           <Trash2 size={14} /> Delete Worksheet
                         </button>
 
-                        <div style={{ height: "1px", backgroundColor: "var(--border-color)", margin: "0.25rem 0" }} />
+                        <div className={actionMenuStyles.menuDivider} />
 
-                        <button
-                          type="button"
-                          className={tableStyles.pageButton}
-                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
-                          onClick={() => onView(row.id)}
-                        >
+                        <button type="button" className={actionMenuStyles.menuItem} style={{ color: "var(--text-muted)" }} onClick={() => onView(row.id)}>
                           <Activity size={14} /> View Timeline
                         </button>
 
-                        <button
-                          type="button"
-                          className={tableStyles.pageButton}
-                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
-                          onClick={() => navigate(`/vehicles?id=${row.plateNumber}`)}
-                        >
+                        <button type="button" className={actionMenuStyles.menuItem} style={{ color: "var(--text-muted)" }} onClick={() => navigate(`/vehicles?id=${row.plateNumber}`)}>
                           <Truck size={14} /> View Vehicle
                         </button>
                       </ActionMenu>

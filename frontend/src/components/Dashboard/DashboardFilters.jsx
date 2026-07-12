@@ -51,9 +51,9 @@ export const DashboardFilters = ({ filters: propFilters, updateFilter: propUpdat
     <div
       className="glass-panel dashboard-filters-grid"
       style={{
-        padding: "1.25rem 1.5rem",
+        padding: "1.5rem 1.75rem",
         borderRadius: "var(--radius-lg)",
-        marginBottom: "2rem"
+        marginBottom: "2.25rem"
       }}
     >
       <Select
@@ -106,13 +106,14 @@ export const DashboardFilters = ({ filters: propFilters, updateFilter: propUpdat
       {/* Always rendered — hidden via CSS when no filters active so layout never shifts */}
       <div
         className={`filter-clear-btn${hasActiveFilters ? "" : " hidden"}`}
-        style={{ display: "flex", alignItems: "flex-end" }}
+        style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}
       >
+        <span style={{ fontSize: "0.875rem", fontWeight: 600, visibility: "hidden" }}>&nbsp;</span>
         <Button
           variant="secondary"
           onClick={resetFilters}
           startIcon={<X size={16} />}
-          style={{ width: "100%", justifyContent: "center" }}
+          style={{ width: "100%", justifyContent: "center", padding: "0.625rem 1rem" }}
           tabIndex={hasActiveFilters ? 0 : -1}
         >
           Clear Filters

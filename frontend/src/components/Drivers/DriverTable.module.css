@@ -91,17 +91,12 @@
 }
 
 .actionCell {
-  position: sticky;
-  right: 0;
-  background-color: var(--bg-secondary);
-  box-shadow: -4px 0 8px -4px rgba(0, 0, 0, 0.1);
-  text-align: right;
-  z-index: 2;
+  text-align: center;
+  width: 60px;
+  white-space: nowrap;
 }
 
-tr:hover .actionCell {
-  background-color: var(--bg-primary);
-}
+
 
 .avatar {
   width: 36px;

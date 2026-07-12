@@ -33,8 +33,8 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Role is required'],
       enum: {
-        values: ['Fleet Manager', 'Dispatcher', 'Safety Officer', 'Financial Analyst'],
-        message: 'Role must be Fleet Manager, Dispatcher, Safety Officer, or Financial Analyst'
+        values: ['Super Admin', 'Fleet Manager', 'Dispatcher', 'Safety Officer', 'Financial Analyst'],
+        message: 'Role must be Super Admin, Fleet Manager, Dispatcher, Safety Officer, or Financial Analyst'
       }
     },
     profileImage: {
@@ -48,6 +48,40 @@ const UserSchema = new mongoose.Schema(
     },
     lastLogin: {
       type: Date
+    },
+    failed_attempts: {
+      type: Number,
+      default: 0
+    },
+    account_locked: {
+      type: Boolean,
+      default: false
+    },
+    locked_at: {
+      type: Date,
+      default: null
+    },
+    locked_by: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    unlock_reason: {
+      type: String,
+      default: null
+    },
+    last_failed_login: {
+      type: Date,
+      default: null
+    },
+    last_successful_login: {
+      type: Date,
+      default: null
+    },
+    department: {
+      type: String,
+      trim: true,
+      default: 'Operations'
     }
   },
   {
@@ -58,6 +92,10 @@ const UserSchema = new mongoose.Schema(
 // Hash password before saving
 UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
+    return next();
+  }
+  // Prevent double-hashing if password is already a bcrypt hash
+  if (this.password && /^\$2[ayb]\$\d+\$[./A-Za-z0-9]{53}$/.test(this.password)) {
     return next();
   }
   const salt = await bcrypt.genSalt(10);

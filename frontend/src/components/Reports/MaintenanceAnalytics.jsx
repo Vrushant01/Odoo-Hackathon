@@ -7,14 +7,14 @@ export const MaintenanceAnalytics = ({ data, onExport }) => {
   if (!data) return null;
 
   const {
-    summary,
-    costTrend,
-    frequencyTrend,
-    maintenanceTypeDistribution,
-    repairCountByVehicle,
-    workshopUtilization,
-    maintenanceCostTable
-  } = data;
+    summary = {},
+    costTrend = [],
+    frequencyTrend = [],
+    maintenanceTypeDistribution = [],
+    repairCountByVehicle = [],
+    workshopUtilization = [],
+    maintenanceCostTable = []
+  } = data || {};
 
   const tableColumns = [
     { key: "vehicle", label: "Vehicle" },
@@ -29,14 +29,14 @@ export const MaintenanceAnalytics = ({ data, onExport }) => {
       {/* KPI Row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
         {[
-          { label: "Total Records", value: summary.totalRecords },
-          { label: "Completed", value: summary.completedMaintenance },
-          { label: "In Progress", value: summary.inProgressMaintenance },
-          { label: "Preventive", value: summary.preventiveCount },
-          { label: "Corrective", value: summary.correctiveCount },
-          { label: "Avg Downtime", value: `${summary.avgDowntimeDays} days` },
-          { label: "Total Cost", value: `$${summary.totalCost.toLocaleString()}` },
-          { label: "Avg Cost", value: `$${summary.avgCostPerRecord}` }
+          { label: "Total Records", value: summary.totalRecords || 0 },
+          { label: "Completed", value: summary.completedMaintenance || 0 },
+          { label: "In Progress", value: summary.inProgressMaintenance || 0 },
+          { label: "Preventive", value: summary.preventiveCount || 0 },
+          { label: "Corrective", value: summary.correctiveCount || 0 },
+          { label: "Avg Downtime", value: `${summary.avgDowntimeDays || 0} days` },
+          { label: "Total Cost", value: `$${(summary.totalCost || 0).toLocaleString()}` },
+          { label: "Avg Cost", value: `$${summary.avgCostPerRecord || 0}` }
         ].map((item) => (
           <div key={item.label} className="glass-panel" style={{ padding: "0.875rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)" }}>
             <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase" }}>{item.label}</span>

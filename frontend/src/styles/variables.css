@@ -7,9 +7,9 @@
   --font-accent: 'Outfit', sans-serif;
 
   /* Theme-independent layout sizes */
-  --sidebar-width: 280px;
-  --sidebar-collapsed-width: 80px;
-  --navbar-height: 70px;
+  --sidebar-width: 230px;
+  --sidebar-collapsed-width: 68px;
+  --navbar-height: 60px;
   --radius-xs: 4px;
   --radius-sm: 8px;
   --radius-md: 12px;

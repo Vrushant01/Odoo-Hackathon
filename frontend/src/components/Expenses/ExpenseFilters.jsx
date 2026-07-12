@@ -45,9 +45,8 @@ export const ExpenseFilters = ({ filters, updateFilter, resetFilters }) => {
         {hasActiveFilters && (
           <Button
             variant="secondary"
-            size="sm"
             onClick={resetFilters}
-            startIcon={<RotateCcw size={12} />}
+            startIcon={<RotateCcw size={16} />}
           >
             Reset Filters
           </Button>

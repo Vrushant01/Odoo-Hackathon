@@ -23,24 +23,7 @@ export const ProtectedRoute = ({ children, permission }) => {
 
   // If page-level permission check is required
   if (permission && !hasPermission(permission)) {
-    return (
-      <MainLayout>
-        <div style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "60vh",
-          textAlign: "center",
-          padding: "2rem"
-        }}>
-          <h2 style={{ fontSize: "2rem", color: "var(--danger)", marginBottom: "1rem" }}>Access Denied</h2>
-          <p style={{ color: "var(--text-secondary)", maxWidth: "450px", marginBottom: "1.5rem" }}>
-            You do not have the required permissions to access this page. Please contact your administrator if you believe this is an error.
-          </p>
-        </div>
-      </MainLayout>
-    );
+    return <Navigate to="/dashboard" replace />;
   }
 
   // If authenticated and permitted, render in MainLayout

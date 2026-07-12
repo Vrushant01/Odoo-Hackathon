@@ -23,6 +23,7 @@ import EmptyState from "../EmptyState/EmptyState";
 import styles from "./ExpenseTable.module.css";
 import tableStyles from "../Table/Table.module.css";
 import ActionMenu from "../ActionMenu/ActionMenu";
+import actionMenuStyles from "../ActionMenu/ActionMenu.module.css";
 
 export const ExpenseTable = ({
   data = [],
@@ -293,51 +294,27 @@ export const ExpenseTable = ({
                       onOpen={() => setActiveMenuId(row.id)}
                       onClose={() => setActiveMenuId(null)}
                     >
-                      <button
-                        type="button"
-                        className={tableStyles.pageButton}
-                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
-                        onClick={() => onView(row.id)}
-                      >
+                      <button type="button" className={actionMenuStyles.menuItem} onClick={() => onView(row.id)}>
                         <Eye size={14} /> View Details
                       </button>
 
-                      <button
-                        type="button"
-                        className={tableStyles.pageButton}
-                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
-                        onClick={() => onEdit(row.id)}
-                      >
+                      <button type="button" className={actionMenuStyles.menuItem} onClick={() => onEdit(row.id)}>
                         <Edit2 size={14} /> Edit Expense
                       </button>
 
-                      <button
-                        type="button"
-                        className={tableStyles.pageButton}
-                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--danger)" }}
-                        onClick={() => onDelete(row.id)}
-                      >
+                      <button type="button" className={actionMenuStyles.menuItem} style={{ color: "var(--danger)" }} onClick={() => onDelete(row.id)}>
                         <Trash2 size={14} /> Delete Expense
                       </button>
 
-                      <div style={{ height: "1px", backgroundColor: "var(--border-color)", margin: "0.25rem 0" }} />
+                      <div className={actionMenuStyles.menuDivider} />
 
-                      <button
-                        type="button"
-                        className={tableStyles.pageButton}
-                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
-                        onClick={() => navigate(`/vehicles?id=${row.vehicle.match(/\(([^)]+)\)/)?.[1] || ""}`)}
+                      <button type="button" className={actionMenuStyles.menuItem} style={{ color: "var(--text-muted)" }} onClick={() => navigate(`/vehicles?id=${row.vehicle.match(/\(([^)]+)\)/)?.[1] || ""}`)}
                       >
                         <Truck size={14} /> View Vehicle
                       </button>
 
                       {row.tripId && (
-                        <button
-                          type="button"
-                          className={tableStyles.pageButton}
-                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
-                          onClick={() => navigate(`/trips?id=${row.tripId}`)}
-                        >
+                        <button type="button" className={actionMenuStyles.menuItem} style={{ color: "var(--text-muted)" }} onClick={() => navigate(`/trips?id=${row.tripId}`)}>
                           <Compass size={14} /> View Trip Details
                         </button>
                       )}

@@ -1,0 +1,28 @@
+/* ActionMenu dropdown item styles — used by all data tables */
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border: none;
+  width: 100%;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  font-family: var(--font-accent);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.menuItem:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.menuDivider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 0.25rem 0;
+}

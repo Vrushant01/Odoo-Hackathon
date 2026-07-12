@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useRef
 } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 
 // ─── Default filter shape ──────────────────────────────────────────────────
@@ -29,6 +29,7 @@ export const FilterContext = createContext(null);
 // ─── Provider ──────────────────────────────────────────────────────────────
 export const FilterProvider = ({ children }) => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
 
   // Initialize from URL query params on first render (page refresh persistence)
   const [globalFilters, setGlobalFilters] = useState(() => ({
@@ -49,6 +50,9 @@ export const FilterProvider = ({ children }) => {
 
   // Sync globalFilters → URL whenever they change
   useEffect(() => {
+    if (location.pathname === "/" || location.pathname === "/login") {
+      return;
+    }
     const params = {};
     // Keep all non-filter params already in the URL (id, action, etc.)
     Object.fromEntries(searchParams.entries());
@@ -62,7 +66,7 @@ export const FilterProvider = ({ children }) => {
     });
     setSearchParams(params, { replace: true });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [globalFilters]);
+  }, [globalFilters, location.pathname]);
 
   // ── updateGlobalFilter ────────────────────────────────────────────────────
   const updateGlobalFilter = useCallback((key, value) => {

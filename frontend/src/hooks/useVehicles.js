@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import vehicleService from "../services/vehicleService";
 import { useGlobalFilters } from "../contexts/FilterContext";
+import { performBulkExport } from "../utils/exportHelper";
 
 export const useVehicles = () => {
   const [vehicles, setVehicles] = useState([]);
@@ -236,7 +237,7 @@ export const useVehicles = () => {
       toast.warning("Please select at least one vehicle to export.");
       return;
     }
-    toast.info(`Exporting ${selectedIds.length} records to ${format.toUpperCase()} (Mock).`);
+    performBulkExport("vehicles", format, selectedIds);
   };
 
   // Row Selection Helpers

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import driverService from "../services/driverService";
 import { useGlobalFilters } from "../contexts/FilterContext";
+import { performBulkExport } from "../utils/exportHelper";
 
 export const useDrivers = () => {
   const [drivers, setDrivers] = useState([]);
@@ -53,11 +54,12 @@ export const useDrivers = () => {
       if (data.success) {
         setSummaryCounts({
           total: data.data.totalDrivers || 0,
-          available: data.data.available || 0,
-          onTrip: data.data.onTrip || 0,
+          available: data.data.availableDrivers || 0,
+          onTrip: data.data.driversOnTrip || 0,
           offDuty: data.data.offDuty || 0,
-          suspended: data.data.suspended || 0,
-          expired: data.data.expired || 0
+          suspended: data.data.suspendedDrivers || 0,
+          expiredLicense: data.data.expiredLicenses || 0,
+          averageSafetyScore: data.data.averageSafetyScore || 100
         });
       }
     } catch (e) {
@@ -225,7 +227,7 @@ export const useDrivers = () => {
       toast.warning("Please select at least one driver to export.");
       return;
     }
-    toast.info(`Exporting ${selectedIds.length} records to ${format.toUpperCase()} (Mock).`);
+    performBulkExport("drivers", format, selectedIds);
   };
 
   // Row Selection Helpers

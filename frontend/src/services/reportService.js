@@ -189,7 +189,36 @@ export const reportService = {
 
   getInsights: async () => {
     return [
-      { id: "1", title: "Route Efficiency", description: "Optimize fuel routing hubs in North region.", type: "warning" }
+      {
+        id: "1",
+        title: "Route Efficiency",
+        value: "94.2%",
+        metric: "Optimal route alignment",
+        change: "+3.1% vs last month",
+        trend: "up",
+        icon: "Navigation",
+        color: "var(--primary)"
+      },
+      {
+        id: "2",
+        title: "Fuel Consumption",
+        value: "8.4 km/L",
+        metric: "Average fleet fuel economy",
+        change: "+1.2% efficiency gain",
+        trend: "up",
+        icon: "Fuel",
+        color: "var(--success)"
+      },
+      {
+        id: "3",
+        title: "Maintenance Downtime",
+        value: "1.2 days",
+        metric: "Average shop dwell time",
+        change: "-0.4 days improvement",
+        trend: "down",
+        icon: "Wrench",
+        color: "var(--warning)"
+      }
     ];
   },
 

@@ -7,15 +7,15 @@ export const DriverAnalytics = ({ data, onExport }) => {
   if (!data) return null;
 
   const {
-    summary,
-    performanceRankings,
-    utilizationTrend,
-    safetyScoreDistribution,
-    tripsPerDriver,
-    licenseExpirySummary,
-    mostActiveDriver,
-    leastActiveDriver
-  } = data;
+    summary = {},
+    performanceRankings = [],
+    utilizationTrend = [],
+    safetyScoreDistribution = [],
+    tripsPerDriver = [],
+    licenseExpirySummary = [],
+    mostActiveDriver = null,
+    leastActiveDriver = null
+  } = data || {};
 
   const tableColumns = [
     { key: "driver", label: "Driver" },
@@ -26,6 +26,9 @@ export const DriverAnalytics = ({ data, onExport }) => {
     { key: "fuelEfficiency", label: "Efficiency (km/L)" },
     { key: "avgRating", label: "Avg Rating" }
   ];
+
+  const mostActive = mostActiveDriver || { name: "N/A", trips: 0, distance: 0, safetyScore: "N/A" };
+  const leastActive = leastActiveDriver || { name: "N/A", trips: 0, distance: 0, safetyScore: "N/A" };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
@@ -69,18 +72,18 @@ export const DriverAnalytics = ({ data, onExport }) => {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
         <Card title="Most Active Driver" subtitle="Highest trip count">
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.9rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-secondary)" }}>Name</span><strong>{mostActiveDriver.name}</strong></div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-secondary)" }}>Trips</span><strong>{mostActiveDriver.trips}</strong></div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-secondary)" }}>Distance</span><strong>{mostActiveDriver.distance.toLocaleString()} km</strong></div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-secondary)" }}>Safety</span><strong style={{ color: "var(--success)" }}>{mostActiveDriver.safetyScore}</strong></div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-secondary)" }}>Name</span><strong>{mostActive.name}</strong></div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-secondary)" }}>Trips</span><strong>{mostActive.trips}</strong></div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-secondary)" }}>Distance</span><strong>{(mostActive.distance || 0).toLocaleString()} km</strong></div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-secondary)" }}>Safety</span><strong style={{ color: "var(--success)" }}>{mostActive.safetyScore}</strong></div>
           </div>
         </Card>
         <Card title="Least Active Driver" subtitle="Lowest trip count">
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.9rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-secondary)" }}>Name</span><strong>{leastActiveDriver.name}</strong></div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-secondary)" }}>Trips</span><strong>{leastActiveDriver.trips}</strong></div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-secondary)" }}>Distance</span><strong>{leastActiveDriver.distance.toLocaleString()} km</strong></div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-secondary)" }}>Safety</span><strong style={{ color: "var(--warning)" }}>{leastActiveDriver.safetyScore}</strong></div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-secondary)" }}>Name</span><strong>{leastActive.name}</strong></div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-secondary)" }}>Trips</span><strong>{leastActive.trips}</strong></div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-secondary)" }}>Distance</span><strong>{(leastActive.distance || 0).toLocaleString()} km</strong></div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--text-secondary)" }}>Safety</span><strong style={{ color: "var(--warning)" }}>{leastActive.safetyScore}</strong></div>
           </div>
         </Card>
       </div>

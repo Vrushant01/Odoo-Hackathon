@@ -7,16 +7,16 @@ export const FleetAnalytics = ({ data, onExport }) => {
   if (!data) return null;
 
   const {
-    summary,
-    vehicleStatusDistribution,
-    vehicleTypeDistribution,
-    utilizationTrend,
-    vehicleAvailability,
-    downtimeByVehicle,
-    mostUsedVehicles,
-    leastUsedVehicles,
-    vehiclePerformanceTable
-  } = data;
+    summary = {},
+    vehicleStatusDistribution = [],
+    vehicleTypeDistribution = [],
+    utilizationTrend = [],
+    vehicleAvailability = [],
+    downtimeByVehicle = [],
+    mostUsedVehicles = [],
+    leastUsedVehicles = [],
+    vehiclePerformanceTable = []
+  } = data || {};
 
   const tableColumns = [
     { key: "vehicle", label: "Vehicle" },
@@ -34,12 +34,12 @@ export const FleetAnalytics = ({ data, onExport }) => {
       {/* KPI Row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
         {[
-          { label: "Total Vehicles", value: summary.totalVehicles },
-          { label: "Active", value: summary.activeVehicles },
-          { label: "In Maintenance", value: summary.inMaintenance },
-          { label: "Retired", value: summary.retired },
-          { label: "Utilization", value: `${summary.fleetUtilization}%` },
-          { label: "Total Mileage", value: `${summary.totalMileage.toLocaleString()} km` }
+          { label: "Total Vehicles", value: summary.totalVehicles || 0 },
+          { label: "Active", value: summary.activeVehicles || 0 },
+          { label: "In Maintenance", value: summary.inMaintenance || 0 },
+          { label: "Retired", value: summary.retired || 0 },
+          { label: "Utilization", value: `${summary.fleetUtilization || 0}%` },
+          { label: "Total Mileage", value: `${(summary.totalMileage || 0).toLocaleString()} km` }
         ].map((item) => (
           <div key={item.label} className="glass-panel" style={{ padding: "0.875rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)" }}>
             <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase" }}>{item.label}</span>

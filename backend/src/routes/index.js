@@ -14,6 +14,7 @@ const analyticsRoutes = require('./analyticsRoutes');
 const notificationRoutes = require('./notificationRoutes');
 const settingsRoutes = require('./settingsRoutes');
 const exportRoutes = require('./exportRoutes');
+const userRoutes = require('./userRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/health', healthRoutes);
@@ -29,5 +30,6 @@ router.use('/analytics', analyticsRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/settings', settingsRoutes);
 router.use('/export', exportRoutes);
+router.use('/users', userRoutes);
 
 module.exports = router;

@@ -1,7 +1,16 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
 
 const connectDB = async () => {
   const connUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/transitops';
+  
+  if (connUri.startsWith('mongodb+srv://')) {
+    try {
+      dns.setServers(['1.1.1.1', '8.8.8.8']);
+    } catch (err) {
+      console.warn('Failed to set public DNS servers:', err.message);
+    }
+  }
   
   mongoose.connection.on('connected', () => {
     console.log('MongoDB connection established successfully.');

@@ -103,10 +103,13 @@ export const vehicleService = {
     const res = await api.get("/vehicles", { params: backendParams });
     // Returns array for backward compatibility with components or structured object if pagination is needed
     if (res.data && res.data.vehicles) {
-      return {
-        vehicles: res.data.vehicles.map(mapVehicleToFrontend),
-        pagination: res.data.pagination
-      };
+      if (params.page !== undefined || params.limit !== undefined) {
+        return {
+          vehicles: res.data.vehicles.map(mapVehicleToFrontend),
+          pagination: res.data.pagination
+        };
+      }
+      return res.data.vehicles.map(mapVehicleToFrontend);
     }
     
     // Fallback if returned structure changes

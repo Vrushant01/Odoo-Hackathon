@@ -22,9 +22,9 @@
 
 .contentArea {
   flex: 1;
-  padding: 2rem;
+  padding: 1.25rem;
   width: 100%;
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   animation: pageFadeIn var(--transition-normal) forwards;
 }
@@ -40,8 +40,4 @@
   }
 }
 
-@media (max-width: 1024px) {
-  .mainWrapper {
-    margin-left: var(--sidebar-collapsed-width);
-  }
-}
+

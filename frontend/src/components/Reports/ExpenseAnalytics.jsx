@@ -7,13 +7,13 @@ export const ExpenseAnalytics = ({ data, onExport }) => {
   if (!data) return null;
 
   const {
-    summary,
-    monthlyExpenses,
-    categoryDistribution,
-    vehicleExpenses,
-    operationalCostTrend,
-    expenseTable
-  } = data;
+    summary = {},
+    monthlyExpenses = [],
+    categoryDistribution = [],
+    vehicleExpenses = [],
+    operationalCostTrend = [],
+    expenseTable = []
+  } = data || {};
 
   const tableColumns = [
     { key: "category", label: "Category" },
@@ -29,12 +29,12 @@ export const ExpenseAnalytics = ({ data, onExport }) => {
       {/* KPI Row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
         {[
-          { label: "Total Expenses", value: `$${summary.totalExpenses.toLocaleString()}` },
-          { label: "Fuel Expenses", value: `$${summary.fuelExpenses.toLocaleString()}` },
-          { label: "Maintenance", value: `$${summary.maintenanceExpenses.toLocaleString()}` },
-          { label: "Tolls", value: `$${summary.tollExpenses.toLocaleString()}` },
-          { label: "Monthly Avg", value: `$${summary.monthlyAvg.toLocaleString()}` },
-          { label: "Avg Per Trip", value: `$${summary.avgPerTrip}` }
+          { label: "Total Expenses", value: `$${(summary.totalExpenses || 0).toLocaleString()}` },
+          { label: "Fuel Expenses", value: `$${(summary.fuelExpenses || 0).toLocaleString()}` },
+          { label: "Maintenance", value: `$${(summary.maintenanceExpenses || 0).toLocaleString()}` },
+          { label: "Tolls", value: `$${(summary.tollExpenses || 0).toLocaleString()}` },
+          { label: "Monthly Avg", value: `$${(summary.monthlyAvg || 0).toLocaleString()}` },
+          { label: "Avg Per Trip", value: `$${summary.avgPerTrip || 0}` }
         ].map((item) => (
           <div key={item.label} className="glass-panel" style={{ padding: "0.875rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)" }}>
             <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase" }}>{item.label}</span>

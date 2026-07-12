@@ -128,17 +128,10 @@ h1, h2, h3, h4, h5, h6 {
    ─────────────────────────────────────────────────────────────────────────── */
 .dashboard-filters-grid {
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem 1.5rem;
   align-items: end;
-  /* Desktop ≥1400px: all 8 in one row */
-  grid-template-columns: repeat(8, 1fr);
-}
-
-/* Laptop 1024px–1399px: 4 columns, 2 rows */
-@media (max-width: 1399px) {
-  .dashboard-filters-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+  /* Desktop: 4 columns, wrapping 8 items into 2 rows of 4 columns for clean spacing */
+  grid-template-columns: repeat(4, 1fr);
 }
 
 /* Tablet 640px–1023px: 2 columns */
@@ -171,5 +164,10 @@ h1, h2, h3, h4, h5, h6 {
 .dashboard-filters-grid > * {
   margin-bottom: 0 !important;
   min-width: 0; /* prevent overflow */
+}
+
+/* Squeeze spacing for all summary cards / KPI grids globally */
+div[style*="grid-template-columns"] {
+  gap: 0.875rem !important;
 }
 

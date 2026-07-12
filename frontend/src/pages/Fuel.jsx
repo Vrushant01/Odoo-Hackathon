@@ -23,7 +23,7 @@ export const Fuel = () => {
   const vehicleParam = searchParams.get("vehicle");
 
   const {
-    logs,
+    fuelLogs: logs,
     totalCount,
     allVisibleIds,
     isLoading,

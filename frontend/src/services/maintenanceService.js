@@ -90,16 +90,16 @@ export const maintenanceService = {
 
   getMaintenanceById: async (id) => {
     const res = await api.get(`/maintenance/${id}`);
-    const details = res.data;
-    const mapped = mapMaintenanceToFrontend(details.maintenance);
+    const maintenance = res.data || res.maintenance || res;
+    const mapped = mapMaintenanceToFrontend(maintenance);
     
     // Construct cost breakdown for detail view
     const costSummary = {
-      estimatedCost: details.maintenance.estimatedCost || 0,
-      labourCost: details.maintenance.labourCost || 0,
-      partsCost: details.maintenance.partsCost || 0,
-      additionalCharges: details.maintenance.additionalCost || 0,
-      finalCost: details.maintenance.finalCost || 0
+      estimatedCost: maintenance?.estimatedCost || 0,
+      labourCost: maintenance?.labourCost || 0,
+      partsCost: maintenance?.partsCost || 0,
+      additionalCharges: maintenance?.additionalCost || 0,
+      finalCost: maintenance?.finalCost || 0
     };
 
     return { ...mapped, costSummary };

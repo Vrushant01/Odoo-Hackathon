@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import fuelService from "../services/fuelService";
 import { useGlobalFilters } from "../contexts/FilterContext";
+import { performBulkExport } from "../utils/exportHelper";
 
 export const useFuel = () => {
   const [fuelLogs, setFuelLogs] = useState([]);
@@ -191,7 +192,7 @@ export const useFuel = () => {
       toast.warning("Please select at least one fuel log to export.");
       return;
     }
-    toast.info(`Exporting ${selectedIds.length} records to ${format.toUpperCase()} (Mock).`);
+    performBulkExport("fuel", format, selectedIds);
   };
 
   // Row Selection Helpers

@@ -7,13 +7,13 @@ export const ProfitabilityAnalytics = ({ data, onExport }) => {
   if (!data) return null;
 
   const {
-    summary,
-    monthlyProfitTrend,
-    revenueVsCost,
-    costBreakdown,
-    vehicleProfitability,
-    monthlyPnL
-  } = data;
+    summary = {},
+    monthlyProfitTrend = [],
+    revenueVsCost = [],
+    costBreakdown = [],
+    vehicleProfitability = [],
+    monthlyPnL = []
+  } = data || {};
 
   const vehicleColumns = [
     { key: "vehicle", label: "Vehicle" },
@@ -39,14 +39,14 @@ export const ProfitabilityAnalytics = ({ data, onExport }) => {
       {/* KPI Row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
         {[
-          { label: "Total Revenue", value: `$${summary.totalRevenue.toLocaleString()}` },
-          { label: "Total Expenses", value: `$${summary.totalExpenses.toLocaleString()}` },
-          { label: "Net Profit", value: `$${summary.netProfit.toLocaleString()}` },
-          { label: "ROI", value: `${summary.roi}%` },
-          { label: "Profit Margin", value: `${summary.profitMargin}%` },
-          { label: "Revenue/Trip", value: `$${summary.revenuePerTrip.toLocaleString()}` },
-          { label: "Cost/Vehicle", value: `$${summary.costPerVehicle.toLocaleString()}` },
-          { label: "Cost/Trip", value: `$${summary.costPerTrip}` }
+          { label: "Total Revenue", value: `$${(summary.totalRevenue || 0).toLocaleString()}` },
+          { label: "Total Expenses", value: `$${(summary.totalExpenses || 0).toLocaleString()}` },
+          { label: "Net Profit", value: `$${(summary.netProfit || 0).toLocaleString()}` },
+          { label: "ROI", value: `${summary.roi || 0}%` },
+          { label: "Profit Margin", value: `${summary.profitMargin || 0}%` },
+          { label: "Revenue/Trip", value: `$${(summary.revenuePerTrip || 0).toLocaleString()}` },
+          { label: "Cost/Vehicle", value: `$${(summary.costPerVehicle || 0).toLocaleString()}` },
+          { label: "Cost/Trip", value: `$${summary.costPerTrip || 0}` }
         ].map((item) => (
           <div key={item.label} className="glass-panel" style={{ padding: "0.875rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)" }}>
             <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase" }}>{item.label}</span>

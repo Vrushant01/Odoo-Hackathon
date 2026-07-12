@@ -7,13 +7,13 @@ export const FuelAnalytics = ({ data, onExport }) => {
   if (!data) return null;
 
   const {
-    summary,
-    usageTrend,
-    costTrend,
-    efficiencyByVehicle,
-    consumptionByVehicle,
-    fuelCostTable
-  } = data;
+    summary = {},
+    usageTrend = [],
+    costTrend = [],
+    efficiencyByVehicle = [],
+    consumptionByVehicle = [],
+    fuelCostTable = []
+  } = data || {};
 
   const tableColumns = [
     { key: "vehicle", label: "Vehicle" },
@@ -28,12 +28,12 @@ export const FuelAnalytics = ({ data, onExport }) => {
       {/* KPI Row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
         {[
-          { label: "Total Fuel Used", value: `${summary.totalFuelUsed.toLocaleString()} L` },
-          { label: "Total Fuel Cost", value: `$${summary.totalFuelCost.toLocaleString()}` },
-          { label: "Avg Efficiency", value: `${summary.avgEfficiency} km/L` },
-          { label: "Avg Cost/Liter", value: `$${summary.avgCostPerLiter}` },
-          { label: "Avg Cost/km", value: `$${summary.avgCostPerKm}` },
-          { label: "Avg Cost/Trip", value: `$${summary.avgCostPerTrip}` }
+          { label: "Total Fuel Used", value: `${(summary.totalFuelUsed || 0).toLocaleString()} L` },
+          { label: "Total Fuel Cost", value: `$${(summary.totalFuelCost || 0).toLocaleString()}` },
+          { label: "Avg Efficiency", value: `${summary.avgEfficiency || 0} km/L` },
+          { label: "Avg Cost/Liter", value: `$${summary.avgCostPerLiter || 0}` },
+          { label: "Avg Cost/km", value: `$${summary.avgCostPerKm || 0}` },
+          { label: "Avg Cost/Trip", value: `$${summary.avgCostPerTrip || 0}` }
         ].map((item) => (
           <div key={item.label} className="glass-panel" style={{ padding: "0.875rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)" }}>
             <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase" }}>{item.label}</span>

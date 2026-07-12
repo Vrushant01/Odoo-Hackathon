@@ -154,64 +154,61 @@ export const Maintenance = () => {
           {/* KPI counters */}
           <MaintenanceSummaryCards counts={summaryCounts} />
 
-          {/* Grid Layout: Main ledger vs alerts sidebar */}
+          {/* Alerts Row: Overdue and Upcoming side-by-side */}
           <div style={{
             display: "grid",
-            gridTemplateColumns: "2.8fr 1.2fr",
-            gap: "1.5rem",
-            alignItems: "start"
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: "1.25rem",
+            marginBottom: "1rem"
           }}>
-            {/* Left Ledger Column */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: "1rem",
-                flexWrap: "wrap",
-                width: "100%"
-              }}>
-                <MaintenanceSearch
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onClear={() => setSearchTerm("")}
-                />
-                <MaintenanceFilters
-                  filters={filters}
-                  updateFilter={updateFilter}
-                  resetFilters={resetFilters}
-                />
-              </div>
+            <OverdueMaintenance records={records} />
+            <UpcomingMaintenance records={records} />
+          </div>
 
-              <MaintenanceTable
-                data={records}
-                totalCount={totalCount}
-                allVisibleIds={allVisibleIds}
-                isLoading={isLoading}
-                selectedIds={selectedIds}
-                toggleSelectRow={toggleSelectRow}
-                toggleSelectAll={toggleSelectAll}
-                onView={handleViewDetails}
-                onEdit={handleOpenEditModal}
-                onDelete={setDeleteConfirmId}
-                onStart={handleConfirmStart}
-                onComplete={(id) => setCompleteTarget(records.find(r => r.id === id))}
-                onCancel={(id) => setCancelTarget(records.find(r => r.id === id))}
-                bulkDelete={bulkDelete}
-                bulkExport={bulkExport}
-                sorting={sorting}
-                setSorting={setSorting}
-                pagination={pagination}
-                setPagination={setPagination}
-                pageCount={pageCount}
+          {/* Main Ledger Section (Full Width) */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "1rem",
+              flexWrap: "wrap",
+              width: "100%"
+            }}>
+              <MaintenanceSearch
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onClear={() => setSearchTerm("")}
+              />
+              <MaintenanceFilters
+                filters={filters}
+                updateFilter={updateFilter}
+                resetFilters={resetFilters}
               />
             </div>
 
-            {/* Right Alerts Sidebar */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              <OverdueMaintenance records={records} />
-              <UpcomingMaintenance records={records} />
-            </div>
+            <MaintenanceTable
+              data={records}
+              totalCount={totalCount}
+              allVisibleIds={allVisibleIds}
+              isLoading={isLoading}
+              selectedIds={selectedIds}
+              toggleSelectRow={toggleSelectRow}
+              toggleSelectAll={toggleSelectAll}
+              onView={handleViewDetails}
+              onEdit={handleOpenEditModal}
+              onDelete={setDeleteConfirmId}
+              onStart={handleConfirmStart}
+              onComplete={(id) => setCompleteTarget(records.find(r => r.id === id))}
+              onCancel={(id) => setCancelTarget(records.find(r => r.id === id))}
+              bulkDelete={bulkDelete}
+              bulkExport={bulkExport}
+              sorting={sorting}
+              setSorting={setSorting}
+              pagination={pagination}
+              setPagination={setPagination}
+              pageCount={pageCount}
+            />
           </div>
         </div>
       )}

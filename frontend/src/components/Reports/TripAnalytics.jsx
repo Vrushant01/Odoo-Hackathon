@@ -6,15 +6,15 @@ export const TripAnalytics = ({ data }) => {
   if (!data) return null;
 
   const {
-    summary,
-    tripsPerMonth,
-    tripsPerWeek,
-    tripsPerDay,
-    tripStatusDistribution,
-    distanceDistribution,
-    cargoWeightTrend,
-    durationDistribution
-  } = data;
+    summary = {},
+    tripsPerMonth = [],
+    tripsPerWeek = [],
+    tripsPerDay = [],
+    tripStatusDistribution = [],
+    distanceDistribution = [],
+    cargoWeightTrend = [],
+    durationDistribution = []
+  } = data || {};
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>

@@ -26,7 +26,9 @@ const NotificationSchema = new mongoose.Schema(
           'Fuel Added',
           'Expense Added',
           'Vehicle Retired',
-          'Vehicle Returned'
+          'Vehicle Returned',
+          'Account Locked',
+          'Account Unlocked'
         ],
         message: 'Invalid notification type'
       }

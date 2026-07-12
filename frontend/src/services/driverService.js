@@ -112,10 +112,13 @@ export const driverService = {
 
     const res = await api.get("/drivers", { params: backendParams });
     if (res.data && res.data.drivers) {
-      return {
-        drivers: res.data.drivers.map(mapDriverToFrontend),
-        pagination: res.data.pagination
-      };
+      if (params.page !== undefined || params.limit !== undefined) {
+        return {
+          drivers: res.data.drivers.map(mapDriverToFrontend),
+          pagination: res.data.pagination
+        };
+      }
+      return res.data.drivers.map(mapDriverToFrontend);
     }
 
     const arrayData = Array.isArray(res.data) ? res.data : (res.data?.drivers || []);

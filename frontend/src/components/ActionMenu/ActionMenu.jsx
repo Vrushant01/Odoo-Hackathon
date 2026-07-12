@@ -2,10 +2,59 @@ import React, { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 import { MoreVertical } from "lucide-react";
 
-export const ActionMenu = ({ children, isOpen, onOpen, onClose }) => {
+export const ActionMenu = ({ children, isOpen, onOpen, onClose, status }) => {
   const triggerRef = useRef(null);
   const menuRef = useRef(null);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+
+  const getStatusColor = (status) => {
+    const normalized = status ? String(status).toLowerCase().trim() : "";
+    switch (normalized) {
+      // Success states
+      case "active":
+      case "completed":
+      case "success":
+      case "online":
+      case "ready":
+      case "available":
+        return "var(--success)";
+      
+      // Warning / Pending / In Transit states
+      case "warning":
+      case "pending":
+      case "in progress":
+      case "in-progress":
+      case "in transit":
+      case "in-transit":
+        return "var(--warning)";
+        
+      // Danger / Cancelled / Delayed states
+      case "danger":
+      case "cancelled":
+      case "critical":
+      case "offline":
+      case "delayed":
+      case "suspended":
+        return "var(--danger)";
+        
+      // Info / Dispatched / On Trip states
+      case "info":
+      case "scheduled":
+      case "on trip":
+      case "on-trip":
+        return "var(--info)";
+        
+      case "dispatched":
+      case "draft":
+      default:
+        return "var(--text-secondary)";
+    }
+  };
+
+  const resolvedColor = status ? getStatusColor(status) : "var(--text-muted)";
+
 
   // Update menu position based on trigger dimensions and viewport limits
   const updatePosition = () => {
@@ -140,16 +189,23 @@ export const ActionMenu = ({ children, isOpen, onOpen, onClose }) => {
           }
         }}
         style={{
-          background: "none",
+          background: isHovered || isFocused ? "rgba(255, 255, 255, 0.05)" : "none",
           border: "none",
-          color: "var(--text-muted)",
+          color: resolvedColor,
           cursor: "pointer",
           padding: "0.25rem",
           borderRadius: "var(--radius-xs)",
           display: "inline-flex",
           alignItems: "center",
-          justifyContent: "center"
+          justifyContent: "center",
+          outline: isFocused ? "1px solid var(--border-focus)" : "none",
+          opacity: isHovered || isFocused || isOpen ? 1 : 0.8,
+          transition: "all var(--transition-fast)"
         }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
       >
         <MoreVertical size={18} />
       </button>

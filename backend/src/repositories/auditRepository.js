@@ -23,7 +23,7 @@ class AuditRepository {
       AuditLog,
       queryParamsWithFilter,
       searchableFields,
-      ['user']
+      ['user', 'targetUser']
     );
   }
 }

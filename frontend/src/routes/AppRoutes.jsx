@@ -14,6 +14,8 @@ import Fuel from "../pages/Fuel";
 import Expenses from "../pages/Expenses";
 import Reports from "../pages/Reports";
 import Settings from "../pages/Settings";
+import LockedAccount from "../pages/Login/LockedAccount";
+import UserManagement from "../pages/UserManagement";
 
 export const AppRoutes = () => {
   return (
@@ -94,6 +96,15 @@ export const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/users"
+        element={
+          <ProtectedRoute permission={PERMISSIONS.USERS_VIEW}>
+            <UserManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/locked" element={<LockedAccount />} />
 
       {/* Fallback routing */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

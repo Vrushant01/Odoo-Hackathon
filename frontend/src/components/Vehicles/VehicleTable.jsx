@@ -32,6 +32,7 @@ import EmptyState from "../EmptyState/EmptyState";
 import styles from "./VehicleTable.module.css";
 import tableStyles from "../Table/Table.module.css";
 import ActionMenu from "../ActionMenu/ActionMenu";
+import actionMenuStyles from "../ActionMenu/ActionMenu.module.css";
 
 export const VehicleTable = ({
   data = [],
@@ -399,82 +400,41 @@ export const VehicleTable = ({
                       onOpen={() => setActiveMenuId(row.id)}
                       onClose={() => setActiveMenuId(null)}
                     >
-                      <button
-                        type="button"
-                        className={tableStyles.pageButton}
-                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
-                        onClick={() => onView(row.id)}
-                      >
+                      <button type="button" className={actionMenuStyles.menuItem} onClick={() => onView(row.id)}>
                         <Eye size={14} /> View Details
                       </button>
-                      
+
                       {row.status !== "Retired" && (
-                        <button
-                          type="button"
-                          className={tableStyles.pageButton}
-                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
-                          onClick={() => onEdit(row.id)}
-                        >
+                        <button type="button" className={actionMenuStyles.menuItem} onClick={() => onEdit(row.id)}>
                           <Edit2 size={14} /> Edit Asset
                         </button>
                       )}
 
-                      <button
-                        type="button"
-                        className={tableStyles.pageButton}
-                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem" }}
-                        onClick={() => onDuplicate(row.id)}
-                      >
+                      <button type="button" className={actionMenuStyles.menuItem} onClick={() => onDuplicate(row.id)}>
                         <Copy size={14} /> Duplicate Asset
                       </button>
 
                       {row.status !== "Retired" && (
-                        <button
-                          type="button"
-                          className={tableStyles.pageButton}
-                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--warning)" }}
-                          onClick={() => onRetire(row.id)}
-                        >
+                        <button type="button" className={actionMenuStyles.menuItem} style={{ color: "var(--warning)" }} onClick={() => onRetire(row.id)}>
                           <AlertOctagon size={14} /> Retire Asset
                         </button>
                       )}
 
-                      <button
-                        type="button"
-                        className={tableStyles.pageButton}
-                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--danger)" }}
-                        onClick={() => onDelete(row.id)}
-                      >
+                      <button type="button" className={actionMenuStyles.menuItem} style={{ color: "var(--danger)" }} onClick={() => onDelete(row.id)}>
                         <Trash2 size={14} /> Delete (Soft)
                       </button>
 
-                      {/* Quick sub-log redirects */}
-                      <div style={{ height: "1px", backgroundColor: "var(--border-color)", margin: "0.25rem 0" }} />
-                      
-                      <button
-                        type="button"
-                        className={tableStyles.pageButton}
-                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
-                        onClick={() => navigate(`/trips?vehicle=${row.plateNumber}`)}
-                      >
+                      <div className={actionMenuStyles.menuDivider} />
+
+                      <button type="button" className={actionMenuStyles.menuItem} style={{ color: "var(--text-muted)" }} onClick={() => navigate(`/trips?vehicle=${row.plateNumber}`)}>
                         <Route size={14} /> View Trips
                       </button>
-                      
-                      <button
-                        type="button"
-                        className={tableStyles.pageButton}
-                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
-                        onClick={() => navigate(`/maintenance?vehicle=${row.plateNumber}`)}
-                      >
+
+                      <button type="button" className={actionMenuStyles.menuItem} style={{ color: "var(--text-muted)" }} onClick={() => navigate(`/maintenance?vehicle=${row.plateNumber}`)}>
                         <Wrench size={14} /> Maintenance Logs
                       </button>
 
-                      <button
-                        type="button"
-                        className={tableStyles.pageButton}
-                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", border: "none", width: "100%", background: "none", textAlign: "left", cursor: "pointer", fontWeight: 600, fontSize: "0.85rem", color: "var(--text-muted)" }}
-                        onClick={() => navigate(`/fuel?vehicle=${row.plateNumber}`)}
-                      >
+                      <button type="button" className={actionMenuStyles.menuItem} style={{ color: "var(--text-muted)" }} onClick={() => navigate(`/fuel?vehicle=${row.plateNumber}`)}>
                         <Fuel size={14} /> Fuel Logs
                       </button>
                     </ActionMenu>
