@@ -1,0 +1,78 @@
+export const MOCK_RECENT_TRIPS = [
+  {
+    id: "TR-1002",
+    vehicle: "TX-9082 (Freightliner)",
+    vehicleType: "Heavy Truck",
+    vehicleStatus: "Active",
+    driver: "Marcus Vance",
+    source: "Houston, TX",
+    destination: "Dallas, TX",
+    cargoWeight: "18,500 lbs",
+    distance: "240 mi",
+    status: "Active",
+    region: "South",
+    startDate: "2026-07-12",
+    expectedCompletion: "2026-07-12 15:30"
+  },
+  {
+    id: "TR-1003",
+    vehicle: "NY-8832 (Volvo)",
+    vehicleType: "Heavy Truck",
+    vehicleStatus: "Active",
+    driver: "Sarah Connor",
+    source: "New York, NY",
+    destination: "Boston, MA",
+    cargoWeight: "12,200 lbs",
+    distance: "215 mi",
+    status: "Active",
+    region: "East",
+    startDate: "2026-07-12",
+    expectedCompletion: "2026-07-12 16:00"
+  },
+  {
+    id: "TR-1001",
+    vehicle: "FL-1278 (Mercedes)",
+    vehicleType: "Delivery Van",
+    vehicleStatus: "Active",
+    driver: "David Miller",
+    source: "Miami, FL",
+    destination: "Orlando, FL",
+    cargoWeight: "3,100 lbs",
+    distance: "235 mi",
+    status: "Completed",
+    region: "South",
+    startDate: "2026-07-11",
+    expectedCompletion: "2026-07-11 13:15"
+  },
+  {
+    id: "TR-1004",
+    vehicle: "CA-4521 (Ford)",
+    vehicleType: "Cargo Van",
+    vehicleStatus: "Maintenance",
+    driver: "John Doe",
+    source: "Los Angeles, CA",
+    destination: "San Francisco, CA",
+    cargoWeight: "1,500 lbs",
+    distance: "380 mi",
+    status: "Scheduled",
+    region: "West",
+    startDate: "2026-07-13",
+    expectedCompletion: "2026-07-13 12:30"
+  },
+  {
+    id: "TR-1005",
+    vehicle: "NV-5092 (Peterbilt)",
+    vehicleType: "Heavy Truck",
+    vehicleStatus: "Inactive",
+    driver: "Alex Jones",
+    source: "Las Vegas, NV",
+    destination: "Phoenix, AZ",
+    cargoWeight: "22,000 lbs",
+    distance: "300 mi",
+    status: "Cancelled",
+    region: "West",
+    startDate: "2026-07-10",
+    expectedCompletion: "2026-07-10 17:00"
+  }
+];
+export default MOCK_RECENT_TRIPS;

@@ -1,0 +1,47 @@
+.appContainer {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--bg-primary);
+  transition: background-color var(--transition-normal);
+}
+
+.mainWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin-left: var(--sidebar-width);
+  transition: margin-left var(--transition-normal);
+  overflow-x: hidden;
+}
+
+.mainWrapperExpanded {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+.contentArea {
+  flex: 1;
+  padding: 2rem;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: pageFadeIn var(--transition-normal) forwards;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .mainWrapper {
+    margin-left: var(--sidebar-collapsed-width);
+  }
+}

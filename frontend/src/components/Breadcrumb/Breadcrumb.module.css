@@ -1,0 +1,42 @@
+.nav {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.list {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  gap: 0.5rem;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.link {
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+}
+
+.link:hover {
+  color: var(--primary);
+}
+
+.active {
+  color: var(--text-secondary);
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.separator {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  opacity: 0.7;
+}
