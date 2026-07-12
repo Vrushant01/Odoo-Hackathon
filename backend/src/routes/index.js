@@ -1,0 +1,33 @@
+const express = require('express');
+const router = express.Router();
+const authRoutes = require('./authRoutes');
+const healthRoutes = require('./healthRoutes');
+const vehicleRoutes = require('./vehicleRoutes');
+const driverRoutes = require('./driverRoutes');
+const tripRoutes = require('./tripRoutes');
+const maintenanceRoutes = require('./maintenanceRoutes');
+const fuelRoutes = require('./fuelRoutes');
+const expenseRoutes = require('./expenseRoutes');
+const dashboardRoutes = require('./dashboardRoutes');
+const reportRoutes = require('./reportRoutes');
+const analyticsRoutes = require('./analyticsRoutes');
+const notificationRoutes = require('./notificationRoutes');
+const settingsRoutes = require('./settingsRoutes');
+const exportRoutes = require('./exportRoutes');
+
+router.use('/auth', authRoutes);
+router.use('/health', healthRoutes);
+router.use('/vehicles', vehicleRoutes);
+router.use('/drivers', driverRoutes);
+router.use('/trips', tripRoutes);
+router.use('/maintenance', maintenanceRoutes);
+router.use('/fuel', fuelRoutes);
+router.use('/expenses', expenseRoutes);
+router.use('/dashboard', dashboardRoutes);
+router.use('/reports', reportRoutes);
+router.use('/analytics', analyticsRoutes);
+router.use('/notifications', notificationRoutes);
+router.use('/settings', settingsRoutes);
+router.use('/export', exportRoutes);
+
+module.exports = router;
