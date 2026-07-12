@@ -1,0 +1,45 @@
+.headerContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+  width: 100%;
+  gap: 1rem;
+}
+
+.textSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: var(--font-accent);
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+.actionSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .headerContainer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .actionSection {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

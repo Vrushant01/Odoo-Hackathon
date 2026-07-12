@@ -1,0 +1,49 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+}
+
+.success {
+  background-color: var(--success-light);
+  color: var(--success);
+  border-color: hsla(var(--success-h), var(--success-s), var(--success-l), 0.2);
+}
+
+.warning {
+  background-color: var(--warning-light);
+  color: var(--warning);
+  border-color: hsla(var(--warning-h), var(--warning-s), var(--warning-l), 0.2);
+}
+
+.danger {
+  background-color: var(--danger-light);
+  color: var(--danger);
+  border-color: hsla(var(--danger-h), var(--danger-s), var(--danger-l), 0.2);
+}
+
+.info {
+  background-color: var(--info-light);
+  color: var(--info);
+  border-color: hsla(var(--info-h), var(--info-s), var(--info-l), 0.2);
+}
+
+.neutral {
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
