@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, User, Calendar, FileText, Wrench, Fuel, DollarSign, Activity, Settings, Heart, Award } from "lucide-react";
+import { toast } from "sonner";
 import driverService from "../../services/driverService";
 import StatusBadge from "../StatusBadge/StatusBadge";
 import Button from "../Button/Button";
@@ -30,12 +31,20 @@ export const DriverDetails = ({ driverId, onBack }) => {
           driverService.getDriverTimeline(driverId)
         ]);
 
+        if (!drvData) {
+          toast.error("Driver profile not found.");
+          onBack();
+          return;
+        }
+
         setDriver(drvData);
         setTrips(tripsData);
         setPerformance(perfData);
         setTimeline(timelineData);
       } catch (err) {
         console.error("Failed to load driver details:", err);
+        toast.error("Driver profile not found.");
+        onBack();
       } finally {
         setLoading(false);
       }
@@ -44,7 +53,7 @@ export const DriverDetails = ({ driverId, onBack }) => {
     if (driverId) {
       fetchAllDetails();
     }
-  }, [driverId]);
+  }, [driverId, onBack]);
 
   if (loading) {
     return (

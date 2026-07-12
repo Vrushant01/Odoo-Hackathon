@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, User, Calendar, Truck, FileText, Wrench, Fuel, DollarSign, Activity, Settings } from "lucide-react";
+import { toast } from "sonner";
 import vehicleService from "../../services/vehicleService";
 import StatusBadge from "../StatusBadge/StatusBadge";
 import Button from "../Button/Button";
@@ -33,6 +34,12 @@ export const VehicleDetails = ({ vehicleId, onBack }) => {
           vehicleService.getVehicleFuelLogs(vehicleId)
         ]);
 
+        if (!vehData) {
+          toast.error("Vehicle profile not found.");
+          onBack();
+          return;
+        }
+
         setVehicle(vehData);
         setHistory(histData);
         setTrips(tripsData);
@@ -40,6 +47,8 @@ export const VehicleDetails = ({ vehicleId, onBack }) => {
         setFuelLogs(fuelData);
       } catch (err) {
         console.error("Failed to load vehicle details:", err);
+        toast.error("Vehicle profile not found.");
+        onBack();
       } finally {
         setLoading(false);
       }
@@ -48,7 +57,7 @@ export const VehicleDetails = ({ vehicleId, onBack }) => {
     if (vehicleId) {
       fetchAllDetails();
     }
-  }, [vehicleId]);
+  }, [vehicleId, onBack]);
 
   if (loading) {
     return (
